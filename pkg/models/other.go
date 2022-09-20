@@ -6,12 +6,12 @@ import (
 
 type Technologies struct {
 	gorm.Model
-	Technology  string
-	Description string
+	Technology  string `json:"technology" gorm:"unique, not null"`
+	Description string `json:"description"`
 
-	BgColor   string
-	TextColor string
-	Icon      string
+	BgColor   string `json:"bgColor"`
+	TextColor string `json:"textColor"`
+	Icon      string `json:"icon"`
 }
 
 type Log struct {
@@ -33,17 +33,17 @@ type DiscordBearer struct {
 	TokenType    string `json:"token_type"`
 }
 
-type DiscordUser struct {
-	ID               string      `json:"id"`
-	Username         string      `json:"username"`
-	Avatar           string      `json:"avatar"`
-	AvatarDecoration interface{} `json:"avatar_decoration"`
-	Discriminator    string      `json:"discriminator"`
-	PublicFlags      int         `json:"public_flags"`
-	Flags            int         `json:"flags"`
-	Banner           string      `json:"banner"`
-	BannerColor      interface{} `json:"banner_color"`
-	AccentColor      interface{} `json:"accent_color"`
-	Locale           string      `json:"locale"`
-	MfaEnabled       bool        `json:"mfa_enabled"`
+type RegisterUser struct {
+	FirstName        string         `json:"first_name"`
+	LastName         string         `json:"last_name"`
+	Email            string         `json:"email"`
+	ElsysEmail       string         `json:"elsys_email"`
+	Mobile           string         `json:"mobile"`
+	Password         string         `json:"password"`
+	Class            string         `json:"class"`
+	Grade            string         `json:"grade"`
+	ShirtSize        string         `json:"shirt_size"`
+	EatingPreference string         `json:"eating_preference"`
+	Allergies        []string       `json:"allergies"`
+	Technologies     []Technologies `json:"technologies"`
 }

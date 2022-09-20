@@ -6,11 +6,11 @@ import (
 
 type Project struct {
 	gorm.Model
-	Name        string
+	Name        string `gorm:"unique, not null"`
 	Description string
 
-	GithubLink string
-	Votes      int
+	GithubLink string `gorm:"unique"`
+	Votes      int    `gorm:"default:0"`
 
 	Logo  string
 	Color string
@@ -18,72 +18,72 @@ type Project struct {
 
 type Pictures struct {
 	gorm.Model
-	ProjectID uint
-	Project   Project
+	ProjectID uint    `gorm:"not null"`
+	Project   Project `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:ProjectID"`
 	Picture   string
 }
 
 type Invites struct {
 	gorm.Model
-	LookingFor bool
-	Accepts    bool
+	LookingFor bool `gorm:"default:false"`
+	Accepts    bool `gorm:"default:false"`
 }
 
 type Team struct {
 	gorm.Model
-	Name        string
+	Name        string `gorm:"unique, not null"`
 	Description string
-	ProjectID   uint
-	Project     Project
-	InvitesID   uint
-	Invites     Invites
+	ProjectID   uint    `gorm:"unique"`
+	Project     Project `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:ProjectID"`
+	InvitesID   uint    `gorm:"unique, not null"`
+	Invites     Invites `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:InvitesID"`
 
 	Logo  string
 	Color string
 
-	Approved bool
-	Points   int
+	Approved bool `gorm:"default:false"`
+	Points   int  `gorm:"default:0"`
 }
 
 type Invite struct {
 	gorm.Model
-	TeamID uint
-	Team   Team
-	UserID uint
-	User   User
+	TeamID uint `gorm:"not null"`
+	Team   Team `gorm:"foreignKey:TeamID"`
+	UserID uint `gorm:"not null"`
+	User   User `gorm:"foreignKey:UserID"`
 
-	Pending     bool
-	Application bool
+	Pending     bool `gorm:"default:true"`
+	Application bool `gorm:"default:false"`
 }
 
 type TeamTechnologies struct {
 	gorm.Model
-	TeamID         uint
-	Team           Team
-	TechnologiesID uint
-	Technologies   Technologies
+	TeamID         uint         `gorm:"not null"`
+	Team           Team         `gorm:"foreignKey:TeamID"`
+	TechnologiesID uint         `gorm:"not null"`
+	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
 
 type ProjectTechnologies struct {
 	gorm.Model
-	ProjectID      uint
-	Project        Project
-	TechnologiesID uint
-	Technologies   Technologies
+	ProjectID      uint         `gorm:"not null"`
+	Project        Project      `gorm:"foreignKey:ProjectID"`
+	TechnologiesID uint         `gorm:"not null"`
+	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
 
 type InviteTechnologies struct {
 	gorm.Model
-	InviteID       uint
-	Invite         Invite
-	TechnologiesID uint
-	Technologies   Technologies
+	InviteID       uint         `gorm:"not null"`
+	Invite         Invite       `gorm:"foreignKey:InviteID"`
+	TechnologiesID uint         `gorm:"not null"`
+	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
 
 type InvitesTechnologies struct {
 	gorm.Model
-	InvitesID      uint
-	Invites        Invites
-	TechnologiesID uint
-	Technologies   Technologies
+	InvitesID      uint         `gorm:"not null"`
+	Invites        Invites      `gorm:"foreignKey:InvitesID"`
+	TechnologiesID uint         `gorm:"not null"`
+	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }

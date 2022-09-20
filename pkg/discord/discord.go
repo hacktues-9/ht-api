@@ -8,9 +8,10 @@ import (
 	"net/url"
 
 	"github.com/hacktues-9/API/pkg/models"
+	"gorm.io/gorm"
 )
 
-func GetDiscordInfo(w http.ResponseWriter, r *http.Request) {
+func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	query := r.URL.Query()
 	code := query.Get("code")
 	fmt.Printf("code: %s", code)
@@ -27,7 +28,7 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request) {
 		"client_secret": {client_secret},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {"http://localhost:8080/api/discord"},
+		"redirect_uri":  {"http://192.168.1.57:8080/api/discord"},
 		"scope":         {"identify"},
 	}
 
@@ -65,14 +66,17 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resps.Body.Close()
 
-	user := &models.DiscordUser{}
+	user := &models.Discord{}
 	err = json.NewDecoder(resps.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	db.Create(&user)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
+
 }

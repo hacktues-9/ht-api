@@ -8,37 +8,43 @@ import (
 
 type Class struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"unique, not null"`
 }
 
 type Role struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"unique, not null"`
 }
 
 type EatingPreference struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"unique, not null"`
 }
 
 type Allergies struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"unique, not null"`
 }
 
 type ShirtSize struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"unique, not null"`
 }
 
 type Discord struct {
 	gorm.Model
-	DiscordID string
-	Email     string
-	Token     string
-
-	ExpiresIn int
-	CreatedAt time.Time
+	DiscordUserID    string `json:"id"`
+	Username         string `json:"username"`
+	Avatar           string `json:"avatar"`
+	AvatarDecoration string `json:"avatar_decoration"`
+	Discriminator    string `json:"discriminator"`
+	PublicFlags      int    `json:"public_flags"`
+	Flags            int    `json:"flags"`
+	Banner           string `json:"banner"`
+	BannerColor      string `json:"banner_color"`
+	AccentColor      string `json:"accent_color"`
+	Locale           string `json:"locale"`
+	MfaEnabled       bool   `json:"mfa_enabled"`
 }
 
 type Socials struct {
@@ -47,67 +53,67 @@ type Socials struct {
 	LinkedInLink  string
 	InstagramLink string
 
-	ProfilePicture string
+	ProfilePicture string `gorm:"default:https://i.stack.imgur.com/l60Hf.png"`
 	DiscordID      uint
-	Discord        Discord
+	Discord        Discord `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:DiscordID"`
 }
 
 type Info struct {
 	gorm.Model
-	Grade   int
-	ClassID uint
-	Class   Class
+	Grade   int   `gorm:"not null, check:grade > 7 and grade < 13"`
+	ClassID uint  `gorm:"not null"`
+	Class   Class `gorm:"foreignKey:ClassID"`
 
-	EatingPreferenceID uint
-	EatingPreference   EatingPreference
-	SocialsID          uint
-	Socials            Socials
-	ShirtSizeID        uint
-	ShirtSize          ShirtSize
+	EatingPreferenceID uint             `gorm:"not null"`
+	EatingPreference   EatingPreference `gorm:"foreignKey:EatingPreferenceID"`
+	SocialsID          uint             `gorm:"unique, not null"`
+	Socials            Socials          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	ShirtSizeID        uint             `gorm:"not null"`
+	ShirtSize          ShirtSize        `gorm:"foreignKey:ShirtSizeID"`
 }
 
 type Security struct {
 	gorm.Model
-	EmailVerified      bool
-	ElsysEmailVerified bool
-	ManualVerified     bool
+	EmailVerified      bool `gorm:"default:false"`
+	ElsysEmailVerified bool `gorm:"default:false"`
+	ManualVerified     bool `gorm:"default:false"`
 }
 
 type User struct {
 	gorm.Model
-	FirstName string
-	LastName  string
+	FirstName string `gorm:"not null"`
+	LastName  string `gorm:"not null"`
 
-	Email      string
-	ElsysEmail string
-	Mobile     string
+	Email      string `gorm:"unique"`
+	ElsysEmail string `gorm:"unique, not null"`
+	Mobile     string `gorm:"unique, not null"`
 
-	Password string
+	Password string `gorm:"not null"`
 
-	InfoID     uint
-	Info       Info
-	SecurityID uint
-	Security   Security
-	RoleID     uint
-	Role       Role
+	InfoID     uint     `gorm:"unique"`
+	Info       Info     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:InfoID"`
+	SecurityID uint     `gorm:"unique"`
+	Security   Security `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:SecurityID"`
+	RoleID     uint     `gorm:"not null"`
+	Role       Role     `gorm:"foreignKey:RoleID"`
 	TeamID     uint
-	Team       Team
+	Team       Team `gorm:"foreignKey:TeamID"`
 
-	LastLogin time.Time
+	LastLogin time.Time `gorm:"default:CURRENT_TIMESTAMP"`
 }
 
 type InfoAllergies struct {
 	gorm.Model
-	InfoID      uint
-	Info        Info
-	Allergies   Allergies
-	AllergiesID uint
+	InfoID      uint      `gorm:"not null"`
+	Info        Info      `gorm:"foreignKey:InfoID"`
+	AllergiesID uint      `gorm:"not null"`
+	Allergies   Allergies `gorm:"foreignKey:AllergiesID"`
 }
 
 type UserTechnologies struct {
 	gorm.Model
-	UserID         uint
-	User           User
-	TechnologiesID uint
-	Technologies   Technologies
+	UserID         uint         `gorm:"not null"`
+	User           User         `gorm:"foreignKey:UserID"`
+	TechnologiesID uint         `gorm:"not null"`
+	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
