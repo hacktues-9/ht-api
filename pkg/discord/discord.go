@@ -14,6 +14,7 @@ import (
 func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	query := r.URL.Query()
 	code := query.Get("code")
+	id := query.Get("id")
 	fmt.Printf("code: %s", code)
 
 	client_id := "1009547623637712977"
@@ -28,7 +29,7 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		"client_secret": {client_secret},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {"http://192.168.1.57:8080/api/discord"},
+		"redirect_uri":  {"http://localhost:8080/api/discord?id=" + id},
 		"scope":         {"identify"},
 	}
 
@@ -66,17 +67,17 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 	defer resps.Body.Close()
 
-	user := &models.Discord{}
-	err = json.NewDecoder(resps.Body).Decode(&user)
+	discord := &models.Discord{}
+	err = json.NewDecoder(resps.Body).Decode(&discord)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	db.Create(&user)
+	db.Create(&discord)
+	db.Model(&models.Socials{}).Where("ID = ?", id).Update("DiscordID", discord.ID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(discord)
 
 }
