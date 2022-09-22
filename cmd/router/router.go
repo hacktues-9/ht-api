@@ -15,6 +15,12 @@ import (
 
 func Init(DB *gorm.DB) {
 	r := mux.NewRouter()
+
+	r.HandleFunc("/api/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("pong"))
+	})
+
 	r.HandleFunc("/api/discord", func(w http.ResponseWriter, r *http.Request) {
 		discord.GetDiscordInfo(w, r, DB)
 	})
