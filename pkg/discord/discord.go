@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
 )
 
 func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	hostUrl := os.Getenv("HOST_URL")
 	query := r.URL.Query()
 	code := query.Get("code")
 	id := query.Get("id")
@@ -31,7 +33,7 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		"client_secret": {client_secret},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {"http://localhost:8080/api/discord?id=" + id},
+		"redirect_uri":  {hostUrl + "api/discord?id=" + id},
 		"scope":         {"identify"},
 	}
 

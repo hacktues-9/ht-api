@@ -40,13 +40,14 @@ func SendEmail(reciever string, email string, verificationLink string) {
 }
 
 func GenerateVerificationLink(email string, privateKey string, publicKey string, TokenTTL time.Duration) string {
+	hostUrl := os.Getenv("HOST_URL")
 	elsys := strings.Contains(email, "@elsys-bg.org")
 	token, err := jwt.CreateToken(TokenTTL, email, privateKey, publicKey)
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
-	return "http://localhost:8080/api/auth/verify/" + strconv.FormatBool(elsys) + "/" + token
+	return hostUrl + "api/auth/verify/" + strconv.FormatBool(elsys) + "/" + token
 }
 
 func ValidateEmailToken(token string, publicKey string) (string, error) {
