@@ -14,54 +14,60 @@ import (
 )
 
 func Init(DB *gorm.DB) {
-	r := mux.NewRouter()
+	r := mux.NewRouter().PathPrefix("/api").Subrouter()
+	auth := r.PathPrefix("/auth").Subrouter()
+	admin := r.PathPrefix("/admin").Subrouter()
+	// mentor := r.PathPrefix("/mentor").Subrouter()
+	// team := r.PathPrefix("/team").Subrouter()
+	user := r.PathPrefix("/user").Subrouter()
+	database := r.PathPrefix("/db").Subrouter()
 
-	r.HandleFunc("/api/ping", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { // route - /api/ping
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("pong"))
 	})
 
-	r.HandleFunc("/api/discord", func(w http.ResponseWriter, r *http.Request) {
+	user.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/discord
 		discord.GetDiscordInfo(w, r, DB)
 	})
 
-	r.HandleFunc("/api/db/migrate", func(w http.ResponseWriter, r *http.Request) {
+	database.HandleFunc("/migrate", func(w http.ResponseWriter, r *http.Request) { // route - /api/db/migrate
 		db.Migrate(DB)
 	})
 
-	r.HandleFunc("/api/db/drop", func(w http.ResponseWriter, r *http.Request) {
+	database.HandleFunc("/drop", func(w http.ResponseWriter, r *http.Request) { // route - /api/db/drop
 		db.Drop(DB)
 	})
 
-	r.HandleFunc("/api/db/populate", func(w http.ResponseWriter, r *http.Request) {
+	database.HandleFunc("/populate", func(w http.ResponseWriter, r *http.Request) { // route - /api/db/populate
 		db.PopulateDefault(DB)
 	})
 
-	r.HandleFunc("/api/auth/register", func(w http.ResponseWriter, r *http.Request) {
+	auth.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/register
 		users.Register(w, r, DB)
 	})
 
-	r.HandleFunc("/api/auth/verify/{elsys}/{token}", func(w http.ResponseWriter, r *http.Request) {
+	user.HandleFunc("/verify/{elsys}/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/verify/{elsys}/{token}
 		email.ValidateEmail(w, r, DB)
 	})
 
-	r.HandleFunc("/api/admin/auth/getUser", func(w http.ResponseWriter, r *http.Request) {
+	admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
 		users.FetchUser(w, r, DB)
 	})
 
-	r.HandleFunc("/api/auth/login", func(w http.ResponseWriter, r *http.Request) {
+	auth.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/login
 		users.Login(w, r, DB)
 	})
 
-	r.HandleFunc("/api/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
+	auth.HandleFunc("/refresh", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/refresh
 		jwt.RefreshAccessToken(w, r, DB)
 	})
 
-	r.HandleFunc("/api/auth/logout", func(w http.ResponseWriter, r *http.Request) {
+	auth.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/logout
 		users.Logout(w, r, DB)
 	})
 
-	r.HandleFunc("/api/users/me", func(w http.ResponseWriter, r *http.Request) {
+	user.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/me
 		users.GetUser(w, r, DB)
 	})
 

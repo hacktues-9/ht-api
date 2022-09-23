@@ -47,7 +47,7 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 		fmt.Println(err)
 		return ""
 	}
-	return hostUrl + "api/auth/verify/" + strconv.FormatBool(elsys) + "/" + token
+	return hostUrl + "api/user/verify/" + strconv.FormatBool(elsys) + "/" + token
 }
 
 func ValidateEmailToken(token string, publicKey string) (string, error) {

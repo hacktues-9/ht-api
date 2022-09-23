@@ -33,7 +33,7 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		"client_secret": {client_secret},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
-		"redirect_uri":  {hostUrl + "api/discord?id=" + id},
+		"redirect_uri":  {hostUrl + "api/user/discord?id=" + id},
 		"scope":         {"identify"},
 	}
 
@@ -90,8 +90,5 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Create(&discord)
 	db.Model(&models.Socials{}).Where("ID = ?", id).Update("DiscordID", discord.ID)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(discord)
-
+	http.Redirect(w, r, "https://discord.gg/q6GGxvjjGb", http.StatusMovedPermanently)
 }
