@@ -42,7 +42,7 @@ type Discord struct {
 	Flags            int    `json:"flags"`
 	Banner           string `json:"banner"`
 	BannerColor      string `json:"banner_color"`
-	AccentColor      string `json:"accent_color"`
+	AccentColor      int    `json:"accent_color"`
 	Locale           string `json:"locale"`
 	MfaEnabled       bool   `json:"mfa_enabled"`
 }
