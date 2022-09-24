@@ -79,7 +79,7 @@ type Security struct {
 	ManualVerified     bool `gorm:"default:false"`
 }
 
-type User struct {
+type Users struct {
 	gorm.Model
 	FirstName string `gorm:"not null"`
 	LastName  string `gorm:"not null"`
@@ -113,7 +113,7 @@ type InfoAllergies struct {
 type UserTechnologies struct {
 	gorm.Model
 	UserID         uint         `gorm:"not null"`
-	User           User         `gorm:"foreignKey:UserID"`
+	User           Users        `gorm:"foreignKey:UserID"`
 	TechnologiesID uint         `gorm:"not null"`
 	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
