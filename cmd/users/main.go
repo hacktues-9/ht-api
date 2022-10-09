@@ -27,7 +27,7 @@ var (
 
 func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	userInfo := models.Info{}
-	user := models.User{}
+	user := models.Users{}
 	parseUser := models.RegisterUser{}
 	userSocials := models.Socials{}
 	userSecurity := models.Security{}
@@ -87,7 +87,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	user = models.User{
+	user = models.Users{
 		FirstName:  parseUser.FirstName,
 		LastName:   parseUser.LastName,
 		Email:      parseUser.Email,
@@ -166,7 +166,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	user := models.LoginUser{}
-	userDB := models.User{}
+	userDB := models.Users{}
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -192,7 +192,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	db.Model(&models.User{}).Where("ID = ?", userDB.ID).Update("last_login", time.Now())
+	db.Model(&models.Users{}).Where("ID = ?", userDB.ID).Update("last_login", time.Now())
 
 	accessToken, err := jwt.CreateToken(accessTokenTTL, userDB.ID, accessTokenPrivateKey, accessTokenPublicKey)
 	if err != nil {
