@@ -52,12 +52,11 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	userSocials = models.Socials{
-		GithubLink:    "",
 		LinkedInLink:  "",
 		InstagramLink: "",
 	}
 
-	if result := db.Omit("DiscordID").Create(&userSocials); result.Error != nil {
+	if result := db.Omit("DiscordID", "GithubID").Create(&userSocials); result.Error != nil {
 		fmt.Println("register: userSocials: create:", result.Error)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("register: userSocials: create: " + result.Error.Error()))

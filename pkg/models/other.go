@@ -52,3 +52,11 @@ type LoginUser struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
 }
+
+type ParseTeam struct {
+	Name         string   `json:"name"`
+	Description  string   `json:"description"`
+	Technologies []string `json:"technologies"`
+	Logo         string   `json:"logo"`
+	Color        string   `json:"color"`
+}

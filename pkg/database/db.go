@@ -58,7 +58,7 @@ func PopulateDefault(db *gorm.DB) {
 	var eatingPreferenceValues = []string{"default", "vegetarian", "vegan", "omnivore", "pescetarian", "other"}
 	var allergiesValues = []string{"none", "nuts", "gluten", "dairy", "other"}
 	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL"}
-	var technologiesValues = []string{"C", "C++", "C#", "Java", "Python", "JavaScript", "HTML", "CSS", "PHP", "Ruby", "Go", "Swift", "Kotlin", "Rust", "Scala", "Haskell", "Elixir", "Erlang", "Clojure", "Lua", "Perl", "R", "SQL", "Bash", "Assembly", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes"}
+	var technologiesValues = []string{"HTML", "C++", "TensorFlow", "Etherium", "JavaScript", "TypeScript", "Angular.js", "Samza", "IOT", "Raspberry Pi", "Rust", "Scala", "Objective C", "Node.js", "Java", "SQLite", "Kubernetes", "Machine Learing", "VR", "C#", "Kotlin", "Vue.js", "MongoDB", "RocksDB", "Perl", "C", "Go", "Flutter", "Flask", "Cassandra", "Arduino", "Docker", "Postgre SQL", "Linux", "Ruby", "Hadoop", "Swift", "Redis", "Python", "Assembler", "MySQL", "InfluxDB", "RDS", "NoSQL", "Django", "PWA", "Embedded", "MapReduce", "CSS", "Pytorch", "PHP", "React.js", "Lua", "R", "AR", "SQL", "Kafka", "Blockchain", "Unity3D"}
 
 	for _, class := range classValues {
 		db.Create(&models.Class{Name: class})

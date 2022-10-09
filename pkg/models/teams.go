@@ -33,10 +33,10 @@ type Team struct {
 	gorm.Model
 	Name        string `gorm:"unique, not null"`
 	Description string
-	ProjectID   uint    `gorm:"unique"`
-	Project     Project `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:ProjectID"`
-	InvitesID   uint    `gorm:"unique, not null"`
-	Invites     Invites `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:InvitesID"`
+	ProjectID   uint
+	Project     Project `gorm:"foreignKey:ProjectID"`
+	InvitesID   uint
+	Invites     Invites `gorm:"foreignKey:InvitesID"`
 
 	Logo  string
 	Color string

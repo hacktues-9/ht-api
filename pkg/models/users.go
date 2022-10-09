@@ -47,15 +47,66 @@ type Discord struct {
 	MfaEnabled       bool   `json:"mfa_enabled"`
 }
 
+type Github struct {
+	gorm.Model
+	Login        string `json:"login"`
+	GithubUserID int    `json:"id"`
+	NodeID       string `json:"node_id"`
+
+	AvatarURL  string `json:"avatar_url"`
+	GravatarID string `json:"gravatar_id"`
+
+	URL     string `json:"url"`
+	HTMLURL string `json:"html_url"`
+
+	FollowersURL string `json:"followers_url"`
+	FollowingURL string `json:"following_url"`
+
+	GistsURL         string `json:"gists_url"`
+	StarredURL       string `json:"starred_url"`
+	SubscriptionsURL string `json:"subscriptions_url"`
+
+	OrganizationsURL string `json:"organizations_url"`
+	ReposURL         string `json:"repos_url"`
+
+	EventsURL         string `json:"events_url"`
+	ReceivedEventsURL string `json:"received_events_url"`
+
+	Type      string `json:"type"`
+	SiteAdmin bool   `json:"site_admin"`
+
+	Name    string `json:"name"`
+	Company string `json:"company"`
+
+	Blog     string `json:"blog"`
+	Location string `json:"location"`
+
+	Email string `json:"email"`
+
+	Hireable        bool   `json:"hireable"`
+	Bio             string `json:"bio"`
+	TwitterUsername string `json:"twitter_username"`
+
+	PublicRepos int `json:"public_repos"`
+	PublicGists int `json:"public_gists"`
+
+	Followers int `json:"followers"`
+	Following int `json:"following"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Socials struct {
 	gorm.Model
-	GithubLink    string
 	LinkedInLink  string
 	InstagramLink string
 
 	ProfilePicture string `gorm:"default:https://i.stack.imgur.com/l60Hf.png"`
 	DiscordID      uint
 	Discord        Discord `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:DiscordID"`
+	GithubID       uint
+	Github         Github `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:GithubID"`
 }
 
 type Info struct {

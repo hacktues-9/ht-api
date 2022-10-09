@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/hacktues-9/API/cmd/teams"
 	"github.com/hacktues-9/API/cmd/users"
 	db "github.com/hacktues-9/API/pkg/database"
-	"github.com/hacktues-9/API/pkg/discord"
 	"github.com/hacktues-9/API/pkg/email"
 	"github.com/hacktues-9/API/pkg/jwt"
+	"github.com/hacktues-9/API/pkg/oauth"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +19,7 @@ func Init(DB *gorm.DB) {
 	auth := r.PathPrefix("/auth").Subrouter()
 	admin := r.PathPrefix("/admin").Subrouter()
 	// mentor := r.PathPrefix("/mentor").Subrouter()
-	// team := r.PathPrefix("/team").Subrouter()
+	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
 	database := r.PathPrefix("/db").Subrouter()
 
@@ -28,7 +29,11 @@ func Init(DB *gorm.DB) {
 	})
 
 	user.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/discord
-		discord.GetDiscordInfo(w, r, DB)
+		oauth.GetDiscordInfo(w, r, DB)
+	})
+
+	user.HandleFunc("/github", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/github
+		oauth.GetGithubInfo(w, r, DB)
 	})
 
 	database.HandleFunc("/migrate", func(w http.ResponseWriter, r *http.Request) { // route - /api/db/migrate
@@ -69,6 +74,10 @@ func Init(DB *gorm.DB) {
 
 	user.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/me
 		users.GetUser(w, r, DB)
+	})
+
+	team.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/create
+		teams.CreateTeam(w, r, DB)
 	})
 
 	http.ListenAndServe(":8080", r)

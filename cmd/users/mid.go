@@ -23,7 +23,7 @@ func ParseUser(id interface{}, db *gorm.DB) map[string]interface{} {
 	tech := []models.Technologies{}
 	allergies := []models.Allergies{}
 
-	db.Preload(clause.Associations).Preload("Info.Class").Preload("Info.EatingPreference").Preload("Info.Socials").Preload("Info.ShirtSize").Preload("Info.Socials.Discord").Preload("Team.Project").Preload("Team.Invites").Where("ID = ?", id).First(&user)
+	db.Preload(clause.Associations).Preload("Info.Class").Preload("Info.EatingPreference").Preload("Info.Socials").Preload("Info.ShirtSize").Preload("Info.Socials.Discord").Preload("Info.Socials.Github").Preload("Team.Project").Preload("Team.Invites").Where("ID = ?", id).First(&user)
 	db.Where("user_id = ?", id).Find(&userTech)
 	db.Where("info_id = ?", user.InfoID).Find(&userAllergies)
 
