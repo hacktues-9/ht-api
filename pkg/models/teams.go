@@ -47,10 +47,10 @@ type Team struct {
 
 type Invite struct {
 	gorm.Model
-	TeamID uint  `gorm:"not null"`
-	Team   Team  `gorm:"foreignKey:TeamID"`
-	UserID uint  `gorm:"not null"`
-	User   Users `gorm:"foreignKey:UserID"`
+	TeamID uint `gorm:"not null"`
+	Team   Team `gorm:"foreignKey:TeamID"`
+	UserID uint `gorm:"not null"`
+	User   User `gorm:"foreignKey:UserID"`
 
 	Pending     bool `gorm:"default:true"`
 	Application bool `gorm:"default:false"`

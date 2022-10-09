@@ -105,7 +105,7 @@ func RefreshAccessToken(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	user := models.Users{}
+	user := models.User{}
 	db.Where("ID = ?", sub).First(&user)
 
 	accessToken, err := CreateToken(accessTokenTTL, user.ID, accessTokenPrivateKey, accessTokenPublicKey)

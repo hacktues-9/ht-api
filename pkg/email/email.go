@@ -73,7 +73,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	user := models.Users{}
+	user := models.User{}
 	if result := db.Preload("Security").Where("email = ?", email).First(&user); result.Error != nil {
 		if result := db.Preload("Security").Where("elsys_email = ?", email).First(&user); result.Error != nil {
 			fmt.Println("login: user: find:", result.Error)

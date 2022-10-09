@@ -17,7 +17,7 @@ func FetchUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func ParseUser(id interface{}, db *gorm.DB) map[string]interface{} {
-	user := models.Users{}
+	user := models.User{}
 	userTech := []models.UserTechnologies{}
 	userAllergies := []models.InfoAllergies{}
 	tech := []models.Technologies{}
