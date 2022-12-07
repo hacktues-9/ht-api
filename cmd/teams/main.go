@@ -62,7 +62,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	//modify user as captain of team
-	user := models.User{}
+	user := models.Users{}
 
 	cookie, err := r.Cookie("access_token")
 	authorizationHeader := r.Header.Get("Authorization")

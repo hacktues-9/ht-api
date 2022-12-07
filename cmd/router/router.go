@@ -11,11 +11,13 @@ import (
 	"github.com/hacktues-9/API/pkg/email"
 	"github.com/hacktues-9/API/pkg/jwt"
 	"github.com/hacktues-9/API/pkg/oauth"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
 func Init(DB *gorm.DB) {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
+	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
 	admin := r.PathPrefix("/admin").Subrouter()
 	// mentor := r.PathPrefix("/mentor").Subrouter()
@@ -80,6 +82,14 @@ func Init(DB *gorm.DB) {
 		teams.CreateTeam(w, r, DB)
 	})
 
-	http.ListenAndServe(":8080", r)
-	fmt.Println("Server started on port :8080")
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+	})
+
+	handler := c.Handler(r)
+	http.ListenAndServe(":8080", handler)
+	fmt.Println("Server started on port 8080")
 }

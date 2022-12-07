@@ -27,10 +27,18 @@ var (
 
 func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	userInfo := models.Info{}
-	user := models.User{}
-	parseUser := models.RegisterUser{}
+	user := models.Users{}
+	parseUser := models.RegisterUsers{}
 	userSocials := models.Socials{}
 	userSecurity := models.Security{}
+	//TODO : Anti Radoslav Filipov func
+	//TODO : Anti Krum Stefanov func
+	//TODO : Anti David ot G class func
+	//TODO : Anti Ivan Ivanov func
+	//TODO : Anti Ivan Georgiev func
+	//TODO : Anti Vasil Kolev func
+	//TODO : Anti C-- func
+	//TODO : Anti Petyo Miladinov func
 
 	err := json.NewDecoder(r.Body).Decode(&parseUser)
 	if err != nil {
@@ -87,7 +95,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	user = models.User{
+	user = models.Users{
 		FirstName:  parseUser.FirstName,
 		LastName:   parseUser.LastName,
 		Email:      parseUser.Email,
@@ -146,7 +154,10 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    refreshToken,
 		Expires:  time.Now().Add(refreshTokenTTL),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	access_cookie := http.Cookie{
@@ -154,7 +165,10 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    accessToken,
 		Expires:  time.Now().Add(accessTokenTTL),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	http.SetCookie(w, &refresh_cookie)
@@ -165,8 +179,8 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	user := models.LoginUser{}
-	userDB := models.User{}
+	user := models.LoginUsers{}
+	userDB := models.Users{}
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -192,7 +206,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	db.Model(&models.User{}).Where("ID = ?", userDB.ID).Update("last_login", time.Now())
+	db.Model(&models.Users{}).Where("ID = ?", userDB.ID).Update("last_login", time.Now())
 
 	accessToken, err := jwt.CreateToken(accessTokenTTL, userDB.ID, accessTokenPrivateKey, accessTokenPublicKey)
 	if err != nil {
@@ -215,7 +229,10 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    refreshToken,
 		Expires:  time.Now().Add(refreshTokenTTL),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	access_cookie := http.Cookie{
@@ -223,7 +240,10 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    accessToken,
 		Expires:  time.Now().Add(accessTokenTTL),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	http.SetCookie(w, &refresh_cookie)
@@ -269,7 +289,10 @@ func Logout(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	accessCookie := http.Cookie{
@@ -277,7 +300,10 @@ func Logout(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		Value:    "",
 		Expires:  time.Now().Add(-1 * time.Hour),
 		HttpOnly: true,
+		Domain:   os.Getenv("HOST_DOMAIN"),
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 
 	http.SetCookie(w, &refreshCookie)
