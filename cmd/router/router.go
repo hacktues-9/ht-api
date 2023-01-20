@@ -83,7 +83,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},

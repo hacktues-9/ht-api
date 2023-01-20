@@ -54,10 +54,10 @@ func Migrate(db *gorm.DB) {
 
 func PopulateDefault(db *gorm.DB) {
 	var classValues = []string{"А", "Б", "В", "Г"}
-	var roleValues = []string{"student", "member", "captain", "mentor", "tester", "admin"}
-	var eatingPreferenceValues = []string{"default", "vegetarian", "vegan", "omnivore", "pescetarian", "other"}
-	var allergiesValues = []string{"none", "nuts", "gluten", "dairy", "other"}
-	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL"}
+	var roleValues = []string{"student", "captain", "mentor", "tester", "admin"}
+	var eatingPreferenceValues = []string{"няма", "вегетарианец", "веган"}
+	var allergiesValues = []string{"яйца", "ядки", "мляко", "глутен"}
+	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL", "XXL"}
 	var technologiesValues = []string{"HTML", "C++", "TensorFlow", "Etherium", "JavaScript", "TypeScript", "Angular.js", "Samza", "IOT", "Raspberry Pi", "Rust", "Scala", "Objective C", "Node.js", "Java", "SQLite", "Kubernetes", "Machine Learing", "VR", "C#", "Kotlin", "Vue.js", "MongoDB", "RocksDB", "Perl", "C", "Go", "Flutter", "Flask", "Cassandra", "Arduino", "Docker", "Postgre SQL", "Linux", "Ruby", "Hadoop", "Swift", "Redis", "Python", "Assembler", "MySQL", "InfluxDB", "RDS", "NoSQL", "Django", "PWA", "Embedded", "MapReduce", "CSS", "Pytorch", "PHP", "React.js", "Lua", "R", "AR", "SQL", "Kafka", "Blockchain", "Unity3D"}
 
 	for _, class := range classValues {

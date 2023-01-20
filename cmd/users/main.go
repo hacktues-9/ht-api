@@ -28,7 +28,7 @@ var (
 func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	userInfo := models.Info{}
 	user := models.Users{}
-	parseUser := models.RegisterUsers{}
+	parseUser := models.RegisterUser{}
 	userSocials := models.Socials{}
 	userSecurity := models.Security{}
 	//TODO : Anti Radoslav Filipov func
@@ -179,7 +179,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	user := models.LoginUsers{}
+	user := models.LoginUser{}
 	userDB := models.Users{}
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -250,6 +250,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	http.SetCookie(w, &access_cookie)
 
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("\"{\\\"login\\\":\\\"success\\\"}\""))
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

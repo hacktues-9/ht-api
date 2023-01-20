@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 
@@ -14,14 +13,7 @@ import (
 	"github.com/hacktues-9/API/pkg/models"
 )
 
-var (
-	accessTokenTTL         = time.Hour * 24
-	refreshTokenTTL        = time.Hour * 24 * 7
-	accessTokenPrivateKey  = os.Getenv("ACCESS_TOKEN_PRIVATE_KEY")
-	accessTokenPublicKey   = os.Getenv("ACCESS_TOKEN_PUBLIC_KEY")
-	refreshTokenPrivateKey = os.Getenv("REFRESH_TOKEN_PRIVATE_KEY")
-	refreshTokenPublicKey  = os.Getenv("REFRESH_TOKEN_PUBLIC_KEY")
-)
+var accessTokenPublicKey = os.Getenv("ACCESS_TOKEN_PUBLIC_KEY")
 
 func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	team := models.Team{}
