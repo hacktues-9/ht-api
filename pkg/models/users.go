@@ -33,7 +33,7 @@ type ShirtSize struct {
 
 type Discord struct {
 	gorm.Model
-	DiscordUserID    string `json:"id"`
+	DiscordUserID    string `json:"id" gorm:"unique, not null"`
 	Username         string `json:"username"`
 	Avatar           string `json:"avatar"`
 	AvatarDecoration string `json:"avatar_decoration"`
@@ -50,7 +50,7 @@ type Discord struct {
 type Github struct {
 	gorm.Model
 	Login        string `json:"login"`
-	GithubUserID int    `json:"id"`
+	GithubUserID int    `json:"id" gorm:"unique, not null"`
 	NodeID       string `json:"node_id"`
 
 	AvatarURL  string `json:"avatar_url"`
@@ -102,11 +102,11 @@ type Socials struct {
 	LinkedInLink  string
 	InstagramLink string
 
-	ProfilePicture string `gorm:"default:https://i.stack.imgur.com/l60Hf.png"`
-	DiscordID      uint
+	ProfilePicture string  `gorm:"default:https://i.stack.imgur.com/l60Hf.png"`
+	DiscordID      uint    `gorm:"unique, not null"`
 	Discord        Discord `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:DiscordID"`
-	GithubID       uint
-	Github         Github `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:GithubID"`
+	GithubID       uint    `gorm:"unique, not null"`
+	Github         Github  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:GithubID"`
 }
 
 type Info struct {

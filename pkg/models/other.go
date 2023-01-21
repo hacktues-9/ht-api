@@ -61,3 +61,13 @@ type ParseTeam struct {
 	Logo         string   `json:"logo"`
 	Color        string   `json:"color"`
 }
+
+type ParseInvite struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}
+
+type ParseApply struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}

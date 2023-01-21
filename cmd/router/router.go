@@ -38,6 +38,14 @@ func Init(DB *gorm.DB) {
 		oauth.GetGithubInfo(w, r, DB)
 	})
 
+	auth.HandleFunc("/github", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/github"
+		oauth.LoginGithub(w, r, DB)
+	})
+
+	auth.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/discord"
+		oauth.LoginDiscord(w, r, DB)
+	})
+
 	database.HandleFunc("/migrate", func(w http.ResponseWriter, r *http.Request) { // route - /api/db/migrate
 		db.Migrate(DB)
 	})
@@ -80,6 +88,14 @@ func Init(DB *gorm.DB) {
 
 	team.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/create
 		teams.CreateTeam(w, r, DB)
+	})
+
+	team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
+		teams.InviteUserToTeam(w, r, DB)
+	})
+
+	team.HandleFunc("/apply", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/apply
+		teams.ApplyToTeam(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{
