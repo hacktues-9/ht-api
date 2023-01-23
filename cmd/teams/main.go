@@ -83,7 +83,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//modify user as captain of team
 
 	user.TeamID = team.ID
-	user.RoleID = 3
+	user.RoleID = 2
 
 	if result := db.Save(&user); result.Error != nil {
 		fmt.Println("createTeam: save:", result.Error)
@@ -204,7 +204,7 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("id = ?", sub).First(&captain)
 
 	// Check if captain is team owner
-	if captain.RoleID != 3 {
+	if captain.RoleID != 2 {
 		fmt.Println("inviteUserToTeam: user not team owner")
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("inviteUserToTeam: user not team owner"))
@@ -463,6 +463,194 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		fmt.Println("recommend team: encode:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("recommend team: encode: " + err.Error()))
+		return
+	}
+}
+
+func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	//get user
+	user := models.Users{}
+	var parseAccept models.ParseAccept
+
+	err := json.NewDecoder(r.Body).Decode(&parseAccept)
+	if err != nil {
+		fmt.Println("accept user to team: decode:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("accept user to team: decode: " + err.Error()))
+		return
+	}
+	cookie, err := r.Cookie("access_token")
+	authorizationHeader := r.Header.Get("Authorization")
+	fields := strings.Fields(authorizationHeader)
+	accessToken := ""
+
+	if len(fields) != 0 && fields[0] == "Bearer" {
+		accessToken = fields[1]
+	} else if err == nil {
+		accessToken = cookie.Value
+	} else {
+		fmt.Println("get user: access token: get:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: get: " + err.Error()))
+		return
+	}
+
+	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	if err != nil {
+		fmt.Println("get user: access token: validate:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		return
+	}
+
+	db.Where("id = ?", sub).First(&user)
+
+	var parseUser models.Users
+
+	db.Where("id = ?", parseAccept.UserID).First(&parseUser)
+	if parseUser.ID == 0 {
+		fmt.Println("accept user to team: user not found")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("accept user to team: user not found"))
+		return
+	}
+
+	if parseUser.TeamID != 0 {
+		fmt.Println("accept user to team: user already in team")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("accept user to team: user already in team"))
+		return
+	}
+
+	//get team
+	team := models.Team{}
+	db.Where("id = ?", parseAccept.TeamID).First(&team)
+
+	//if user.ID == parseUser.ID => user is accepting an invitation to join a team
+	//if user.ID == parseUser.ID => user is accepting parseUser to join user's team (user is a team leader)
+	if user.ID == parseUser.ID {
+		//accept user to team
+		db.Model(&parseUser).Update("team_id", team.ID)
+	} else {
+		//accept parseUser to team
+		if user.RoleID == 2 {
+			db.Model(&parseUser).Update("team_id", team.ID)
+		} else {
+			fmt.Println("accept user to team: user is not a team leader")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("accept user to team: user is not a team leader"))
+			return
+		}
+	}
+
+	//delete invitation
+	db.Where("user_id = ? AND team_id = ?", parseUser.ID, team.ID).Delete(&models.Invite{})
+}
+
+func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// json : { "teams" : [{ "id" : 1, "name" : "team1", "logo" : "https://cdn.thebrandingjournal.com/wp-content/uploads/2019/05/chanel_logo_the_branding_journal.jpg", "members": [{ "id" : 1, "firstName" : "John", "lastName" : "Doe", "profilePicture" : "https://cdn.thebrandingjournal.com/wp-content/uploads/2019/05/chanel_logo_the_branding_journal.jpg", "role" : 3, "grade" : 11, "class" : "А", "email" : "martin@bozhilov.me", "discordUsername" : "TechXTT", "discordDiscriminator" : "0196", "github" : "TechXTT"}, ...]}, ...]}
+
+	//get teams from db
+	// with Query = "SELECT * FROM teams" we get all teams from db
+	var parseTeams []models.ParseTeamView
+	db.Raw("SELECT * FROM teams").Scan(&parseTeams)
+
+	// parse teams to teams
+	var teams []models.TeamsView
+
+	//every row in parseTeams is a member of a team
+	for _, parseTeam := range parseTeams {
+		//check if the team is already in teams
+		teamAlreadyInTeams := false
+		for i, team := range teams {
+			if team.ID == parseTeam.ID {
+				//if the team is already in teams, add the member to the team
+				teamAlreadyInTeams = true
+
+				var member models.MemberView
+				member.ID = parseTeam.UID
+				member.Name = parseTeam.FirstName + " " + parseTeam.LastName
+				member.ProfilePicture = parseTeam.ProfilePicture
+				member.Role = parseTeam.Role
+				member.Class = parseTeam.Grade + parseTeam.Class
+				member.Email = parseTeam.Email
+				member.Discord = parseTeam.UserName + "#" + parseTeam.Discriminator
+				member.Github = parseTeam.Login
+				teams[i].Members = append(teams[i].Members, member)
+			}
+		}
+
+		//if the team is not in teams, add it
+		if !teamAlreadyInTeams {
+			teams = append(teams, models.TeamsView{
+				ID:           parseTeam.ID,
+				Name:         parseTeam.Name,
+				Logo:         parseTeam.Logo,
+				Members:      []models.MemberView{},
+				Project:      models.ProjectView{},
+				Technologies: []string{},
+			})
+
+			//add the member to the team
+			var member models.MemberView
+			member.ID = parseTeam.UID
+			member.Name = parseTeam.FirstName + " " + parseTeam.LastName
+			member.ProfilePicture = parseTeam.ProfilePicture
+			member.Role = parseTeam.Role
+			member.Class = parseTeam.Grade + parseTeam.Class
+			member.Email = parseTeam.Email
+			member.Discord = parseTeam.UserName + "#" + parseTeam.Discriminator
+			member.Github = parseTeam.Login
+
+			teams[len(teams)-1].Members = append(teams[len(teams)-1].Members, member)
+
+			//get team project
+			if parseTeam.PID != 0 {
+				var teamProject models.Project
+				db.Table("projects").Where("id = ?", parseTeam.PID).First(&teamProject)
+
+				//get team project technologies
+				var teamProjectTechnologies []models.Technologies
+				db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
+
+				//parse team project technologies
+				var teamProjectTechnologiesParsed []string
+				for _, teamProjectTechnology := range teamProjectTechnologies {
+					teamProjectTechnologiesParsed = append(teamProjectTechnologiesParsed, teamProjectTechnology.Technology)
+				}
+
+				//add team project to team
+				teams[len(teams)-1].Project = models.ProjectView{
+					ID:           teamProject.ID,
+					Name:         teamProject.Name,
+					Description:  teamProject.Description,
+					Technologies: teamProjectTechnologiesParsed,
+				}
+
+			}
+
+			//get team technologies
+			var teamTechnologies []models.Technologies
+			db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
+
+			//parse team technologies
+			var teamTechnologiesParsed []string
+			for _, teamTechnology := range teamTechnologies {
+				teamTechnologiesParsed = append(teamTechnologiesParsed, teamTechnology.Technology)
+			}
+
+			//add team technologies to team
+			teams[len(teams)-1].Technologies = teamTechnologiesParsed
+		}
+	}
+
+	//return teams
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(teams)
+	if err != nil {
+		fmt.Println("get teams: encode:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("get teams: encode: " + err.Error()))
 		return
 	}
 }

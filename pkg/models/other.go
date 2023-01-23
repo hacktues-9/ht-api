@@ -71,3 +71,26 @@ type ParseApply struct {
 	UserID uint `json:"userId"`
 	TeamID uint `json:"teamId"`
 }
+
+type ParseAccept struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}
+
+type ParseTeamView struct {
+	ID             uint   `json:"tid"`
+	Name           string `json:"name"`
+	Logo           string `json:"logo"`
+	PID            uint   `json:"pid"`
+	UID            uint   `json:"uid"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	Email          string `json:"email"`
+	ProfilePicture string `json:"profile_picture"`
+	Role           string `json:"role"`
+	Grade          string `json:"grade"`
+	Class          string `json:"class"`
+	UserName       string `json:"username"`
+	Discriminator  string `json:"discriminator"`
+	Login          string `json:"login"`
+}

@@ -98,6 +98,14 @@ func Init(DB *gorm.DB) {
 		teams.ApplyToTeam(w, r, DB)
 	})
 
+	team.HandleFunc("/accept", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept
+		teams.AcceptUserToTeam(w, r, DB)
+	})
+
+	team.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get
+		teams.GetTeams(w, r, DB)
+	})
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg"},
 		AllowCredentials: true,
