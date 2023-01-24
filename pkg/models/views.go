@@ -30,3 +30,10 @@ type TeamsView struct {
 	Project      ProjectView  `json:"project"`
 	Technologies []string     `json:"technologies"`
 }
+
+type SearchView struct {
+	ID             uint   `json:"id"`
+	Name           string `json:"name"`
+	ProfilePicture string `json:"profile_picture"`
+	IsInvited      bool   `json:"isInvited"`
+}

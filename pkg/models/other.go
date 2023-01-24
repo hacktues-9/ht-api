@@ -55,11 +55,10 @@ type LoginUser struct {
 }
 
 type ParseTeam struct {
-	Name         string   `json:"name"`
-	Description  string   `json:"description"`
-	Technologies []string `json:"technologies"`
-	Logo         string   `json:"logo"`
-	Color        string   `json:"color"`
+	Name         string       `json:"teamName"`
+	Description  string       `json:"teamDescription"`
+	Technologies []string     `json:"teamTechnologies"`
+	Invitees     []SearchView `json:"teamInvitees"`
 }
 
 type ParseInvite struct {

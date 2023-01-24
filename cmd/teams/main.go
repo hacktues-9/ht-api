@@ -54,11 +54,16 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	if user.TeamID != 0 {
+		fmt.Println("createTeam: user already has a team")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("createTeam: user already has a team"))
+		return
+	}
+
 	team = models.Team{
 		Name:        parseTeam.Name,
 		Description: parseTeam.Description,
-		Logo:        parseTeam.Logo,
-		Color:       parseTeam.Color,
 	}
 
 	if result := db.Omit("ProjectID", "InvitesID").Create(&team); result.Error != nil {
@@ -68,7 +73,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	technologies := []uint{}
+	var technologies []uint
 
 	for _, tech := range parseTeam.Technologies {
 		var tempTech models.Technologies
@@ -92,8 +97,43 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	//send invites to invitees
+	for _, invitee := range parseTeam.Invitees {
+		var tempUser models.Users
+		db.Where("id = ?", invitee.ID).First(&tempUser)
+		if tempUser.ID == 0 {
+			fmt.Println("createTeam: user not found")
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("createTeam: user not found"))
+			return
+		}
+
+		if tempUser.TeamID != 0 {
+			fmt.Println("createTeam: user already has a team")
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("createTeam: user already has a team"))
+			return
+		}
+
+		invite := models.Invite{
+			UserID:      tempUser.ID,
+			TeamID:      team.ID,
+			Pending:     true,
+			Application: false,
+		}
+
+		if result := db.Create(&invite); result.Error != nil {
+			fmt.Println("createTeam: create:", result.Error)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("createTeam: create: " + result.Error.Error()))
+			return
+		}
+		
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Team created successfully"))
+	// write team id in json
+	w.Write([]byte("{\"id\": " + fmt.Sprint(team.ID) + "}"))
 }
 
 // func CreateProject(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -205,7 +245,7 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// Check if captain is team owner
 	if captain.RoleID != 2 {
-		fmt.Println("inviteUserToTeam: user not team owner")
+		fmt.Println("inviteUserToTeam: user not team owner", captain.RoleID)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("inviteUserToTeam: user not team owner"))
 		return
@@ -397,23 +437,41 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("id = ?", sub).First(&user)
 
 	//get user technologies
-	userTechnologies := []models.Technologies{}
-	db.Model(&user).Association("Technologies").Find(&userTechnologies)
+	var userTechnologies []models.Technologies
+	err = db.Model(&user).Association("Technologies").Find(&userTechnologies)
+	if err != nil {
+		fmt.Println("get user technologies: find:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("get user technologies: find: " + err.Error()))
+		return
+	}
 
 	//get teams
-	teams := []models.Team{}
+	var teams []models.Team
 	db.Find(&teams)
 
 	//get teams technologies
-	teamsTechnologies := []models.Technologies{}
+	var teamsTechnologies []models.Technologies
 	for _, team := range teams {
-		db.Model(&team).Association("Technologies").Find(&teamsTechnologies)
+		err := db.Model(&team).Association("Technologies").Find(&teamsTechnologies)
+		if err != nil {
+			fmt.Println("get teams technologies: find:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("get teams technologies: find: " + err.Error()))
+			return
+		}
 	}
 
 	//get teams projects
-	teamsProjects := []models.Project{}
+	var teamsProjects []models.Project
 	for _, team := range teams {
-		db.Model(&team).Association("Projects").Find(&teamsProjects)
+		err := db.Model(&team).Association("Projects").Find(&teamsProjects)
+		if err != nil {
+			fmt.Println("recommendTeam: get teams projects:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("recommendTeam: get teams projects: " + err.Error()))
+			return
+		}
 	}
 
 	//get teams projects technologies
@@ -549,9 +607,9 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// json : { "teams" : [{ "id" : 1, "name" : "team1", "logo" : "https://cdn.thebrandingjournal.com/wp-content/uploads/2019/05/chanel_logo_the_branding_journal.jpg", "members": [{ "id" : 1, "firstName" : "John", "lastName" : "Doe", "profilePicture" : "https://cdn.thebrandingjournal.com/wp-content/uploads/2019/05/chanel_logo_the_branding_journal.jpg", "role" : 3, "grade" : 11, "class" : "А", "email" : "martin@bozhilov.me", "discordUsername" : "TechXTT", "discordDiscriminator" : "0196", "github" : "TechXTT"}, ...]}, ...]}
-
 	//get teams from db
 	// with Query = "SELECT * FROM teams" we get all teams from db
+
 	var parseTeams []models.ParseTeamView
 	db.Raw("SELECT * FROM teams").Scan(&parseTeams)
 
@@ -651,6 +709,72 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		fmt.Println("get teams: encode:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("get teams: encode: " + err.Error()))
+		return
+	}
+}
+
+func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// return first three users that match the search query
+
+	// get query search=...
+	query := r.URL.Query().Get("search")
+
+	//get user from cookie or bearer token
+	var user models.Users
+
+	cookie, err := r.Cookie("access_token")
+	authorizationHeader := r.Header.Get("Authorization")
+	fields := strings.Fields(authorizationHeader)
+	accessToken := ""
+
+	if len(fields) != 0 && fields[0] == "Bearer" {
+		accessToken = fields[1]
+	} else if err == nil {
+		accessToken = cookie.Value
+	} else {
+		fmt.Println("get user: access token: get:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: get: " + err.Error()))
+		return
+	}
+
+	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	if err != nil {
+		fmt.Println("get user: access token: validate:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		return
+	}
+
+	db.Table("users").Where("id = ?", sub).First(&user)
+
+	//check if user is captain
+	if user.RoleID != 2 {
+		fmt.Println("search invitees: user is not captain")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("search invitees: user is not captain"))
+		return
+	}
+
+	// get users from db
+	var users []models.SearchView
+	// use searchuser function to get users from db
+	db.Raw("SELECT * FROM searchuser(?, ?)", query, user.TeamID).Scan(&users)
+
+	//remove user from users if exists
+	for i, u := range users {
+		if user.ID == u.ID {
+			users = append(users[:i], users[i+1:]...)
+		}
+	}
+
+	// return users
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(users)
+	if err != nil {
+		fmt.Println("search invitees: encode:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("search invitees: encode: " + err.Error()))
 		return
 	}
 }

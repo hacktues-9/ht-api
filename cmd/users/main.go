@@ -248,9 +248,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	http.SetCookie(w, &refresh_cookie)
 	http.SetCookie(w, &access_cookie)
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("\"{\\\"login\\\":\\\"success\\\"}\""))
+	http.Redirect(w, r, "http://localhost:3000/", http.StatusFound)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

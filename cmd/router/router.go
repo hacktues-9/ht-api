@@ -106,6 +106,10 @@ func Init(DB *gorm.DB) {
 		teams.GetTeams(w, r, DB)
 	})
 
+	team.HandleFunc("/users/search", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/users/search?search={search}
+		teams.SearchInvitees(w, r, DB)
+	})
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg"},
 		AllowCredentials: true,
