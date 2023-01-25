@@ -89,7 +89,7 @@ type ParseTeamView struct {
 	Role           string `json:"role"`
 	Grade          string `json:"grade"`
 	Class          string `json:"class"`
-	UserName       string `json:"username"`
-	Discriminator  string `json:"discriminator"`
-	Login          string `json:"login"`
+	Discord        string `json:"discord"`
+	Github         string `json:"github"`
+	Approved       bool   `json:"approved"`
 }

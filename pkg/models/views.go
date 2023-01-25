@@ -29,6 +29,7 @@ type TeamsView struct {
 	Members      []MemberView `json:"members"`
 	Project      ProjectView  `json:"project"`
 	Technologies []string     `json:"technologies"`
+	IsVerified   bool         `json:"isVerified"`
 }
 
 type SearchView struct {

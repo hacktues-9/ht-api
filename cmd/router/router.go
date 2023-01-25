@@ -114,6 +114,14 @@ func Init(DB *gorm.DB) {
 		teams.SearchInvitees(w, r, DB)
 	})
 
+	team.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/{id}
+		teams.GetTeamID(w, r, DB)
+	})
+
+	team.HandleFunc("/{id}/captain", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/captain
+		teams.GetCaptainID(w, r, DB)
+	})
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg"},
 		AllowCredentials: true,

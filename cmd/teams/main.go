@@ -3,8 +3,10 @@ package teams
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
@@ -128,7 +130,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			w.Write([]byte("createTeam: create: " + result.Error.Error()))
 			return
 		}
-		
+
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -632,8 +634,8 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 				member.Role = parseTeam.Role
 				member.Class = parseTeam.Grade + parseTeam.Class
 				member.Email = parseTeam.Email
-				member.Discord = parseTeam.UserName + "#" + parseTeam.Discriminator
-				member.Github = parseTeam.Login
+				member.Discord = parseTeam.Discord
+				member.Github = parseTeam.Github
 				teams[i].Members = append(teams[i].Members, member)
 			}
 		}
@@ -647,6 +649,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 				Members:      []models.MemberView{},
 				Project:      models.ProjectView{},
 				Technologies: []string{},
+				IsVerified:   parseTeam.Approved,
 			})
 
 			//add the member to the team
@@ -657,8 +660,8 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			member.Role = parseTeam.Role
 			member.Class = parseTeam.Grade + parseTeam.Class
 			member.Email = parseTeam.Email
-			member.Discord = parseTeam.UserName + "#" + parseTeam.Discriminator
-			member.Github = parseTeam.Login
+			member.Discord = parseTeam.Discord
+			member.Github = parseTeam.Github
 
 			teams[len(teams)-1].Members = append(teams[len(teams)-1].Members, member)
 
@@ -704,7 +707,10 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	//return teams
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(teams)
+	// return { "teams": teams }
+	err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"teams": teams,
+	})
 	if err != nil {
 		fmt.Println("get teams: encode:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -777,4 +783,58 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		w.Write([]byte("search invitees: encode: " + err.Error()))
 		return
 	}
+}
+
+func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// get team id from user id
+
+	// get user id from url
+	userID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("get team id: parse:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("get team id: parse: " + err.Error()))
+		return
+	}
+
+	// get team id from db
+	var teamID int
+	err = db.Table("users").Where("id = ?", userID).Select("team_id").Row().Scan(&teamID)
+	if err != nil {
+		fmt.Println("get team id: select:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("get team id: select: " + err.Error()))
+		return
+	}
+
+	// return team id
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{\"data\": " + strconv.Itoa(teamID) + "}"))
+}
+
+func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// get captain id from team id
+
+	// get team id from url
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Println("get captain id: parse:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("get captain id: parse: " + err.Error()))
+		return
+	}
+
+	// get captain id from db
+	var captainID int
+	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+	if err != nil {
+		fmt.Println("get captain id: select:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("get captain id: select: " + err.Error()))
+		return
+	}
+
+	// return captain id
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{\"data\": " + strconv.Itoa(captainID) + "}"))
 }
