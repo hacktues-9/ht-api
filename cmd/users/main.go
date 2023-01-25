@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"strconv"
@@ -251,7 +252,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	http.Redirect(w, r, "http://localhost:3000/", http.StatusFound)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+func GetUserID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	cookie, err := r.Cookie("access_token")
 	authorizationHeader := r.Header.Get("Authorization")
 	fields := strings.Fields(authorizationHeader)
@@ -276,7 +277,71 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	user := ParseUser(sub, db)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"id\": \"" + fmt.Sprintf("%v", sub) + "\"}"))
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// get id int from query
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Println("get user: id: parse:", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("get user: id: parse: " + err.Error()))
+		return
+	}
+	cookie, err := r.Cookie("access_token")
+	authorizationHeader := r.Header.Get("Authorization")
+	fields := strings.Fields(authorizationHeader)
+	accessToken := ""
+
+	if len(fields) != 0 && fields[0] == "Bearer" {
+		accessToken = fields[1]
+	} else if err == nil {
+		accessToken = cookie.Value
+	} else {
+		fmt.Println("get user: access token: get:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: get: " + err.Error()))
+		return
+	}
+
+	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	if err != nil {
+		fmt.Println("get user: access token: validate:", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		return
+	}
+
+	if sub.(float64) != float64(id) {
+		fmt.Println("get user: access token: validate: wrong id", sub, id)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("get user: access token: validate: wrong id"))
+		return
+	}
+
+	var user models.UserView
+
+	db.Raw("SELECT * FROM userview(?)", id).Scan(&user)
+
+	if user.FirstName == "" {
+		fmt.Println("get user: user: find: not found", user)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("get user: user: find: not found"))
+		return
+	}
+
+	//get Technologies for user
+	var technologies []models.Technologies
+	var technologiesView []string
+	db.Table("technologies").Joins("JOIN user_technologies ON user_technologies.technology_id = technologies.id").Where("user_technologies.user_id = ?", id).Scan(&technologies)
+	for _, technology := range technologies {
+		technologiesView = append(technologiesView, technology.Technology)
+	}
+
+	user.Technologies = technologiesView
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)

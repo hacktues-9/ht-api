@@ -37,3 +37,25 @@ type SearchView struct {
 	ProfilePicture string `json:"profile_picture"`
 	IsInvited      bool   `json:"isInvited"`
 }
+
+type UserView struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+
+	Email      string `json:"email"`
+	ElsysEmail string `json:"elsysEmail"`
+	Phone      string `json:"phone"`
+
+	SClass    string `json:"sclass"`
+	ShirtSize string `json:"shirtSize"`
+
+	EmailVerified      bool `json:"emailVerified"`
+	ProfilePicVerified bool `json:"profilePicVerified"`
+
+	Discord        string `json:"discord"`
+	Github         string `json:"github"`
+	LookingForTeam bool   `json:"lookingForTeam"`
+
+	ProfilePicture string   `json:"profilePicture"`
+	Technologies   []string `json:"technologies"`
+}

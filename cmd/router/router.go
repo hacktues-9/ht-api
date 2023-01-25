@@ -82,7 +82,11 @@ func Init(DB *gorm.DB) {
 		users.Logout(w, r, DB)
 	})
 
-	user.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/me
+	auth.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/me
+		users.GetUserID(w, r, DB)
+	})
+
+	user.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get
 		users.GetUser(w, r, DB)
 	})
 
