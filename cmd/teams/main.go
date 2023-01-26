@@ -2,16 +2,15 @@ package teams
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/hacktues-9/API/cmd/users"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
-	"gorm.io/gorm"
-
-	"github.com/hacktues-9/API/pkg/jwt"
 	"github.com/hacktues-9/API/pkg/models"
 )
 
@@ -22,27 +21,10 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseTeam := models.ParseTeam{}
 	user := models.Users{}
 
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
-
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
-		return
-	}
-
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ CreateTeam ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "CreateTeam")
 		return
 	}
 
@@ -50,16 +32,20 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err = json.NewDecoder(r.Body).Decode(&parseTeam)
 	if err != nil {
-		fmt.Println("createTeam: parse:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("createTeam: parse: " + err.Error()))
+		//fmt.Println("createTeam: parse:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("createTeam: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ CreateTeam ] parse: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
 
 	if user.TeamID != 0 {
-		fmt.Println("createTeam: user already has a team")
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("createTeam: user already has a team"))
+		//fmt.Println("createTeam: user already has a team")
+		//w.WriteHeader(http.StatusForbidden)
+		//w.Write([]byte("createTeam: user already has a team"))
+		fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "user already has a team", 0), err, http.StatusForbidden, "CreateTeam")
 		return
 	}
 
@@ -69,9 +55,11 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Omit("ProjectID", "InvitesID").Create(&team); result.Error != nil {
-		fmt.Println("createTeam: create:", result.Error)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("createTeam: create: " + result.Error.Error()))
+		//fmt.Println("createTeam: create:", result.Error)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("createTeam: create: " + result.Error.Error()))
+		fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v", result.Error)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
 
@@ -93,9 +81,11 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	user.RoleID = 2
 
 	if result := db.Save(&user); result.Error != nil {
-		fmt.Println("createTeam: save:", result.Error)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("createTeam: save: " + result.Error.Error()))
+		//fmt.Println("createTeam: save:", result.Error)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("createTeam: save: " + result.Error.Error()))
+		fmt.Printf("[ ERROR ] [ CreateTeam ] save: %v", result.Error)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "save: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
 
@@ -104,16 +94,20 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		var tempUser models.Users
 		db.Where("id = ?", invitee.ID).First(&tempUser)
 		if tempUser.ID == 0 {
-			fmt.Println("createTeam: user not found")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("createTeam: user not found"))
+			//fmt.Println("createTeam: user not found")
+			//w.WriteHeader(http.StatusNotFound)
+			//w.Write([]byte("createTeam: user not found"))
+			fmt.Printf("[ ERROR ] [ CreateTeam ] user not found")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "CreateTeam")
 			return
 		}
 
 		if tempUser.TeamID != 0 {
-			fmt.Println("createTeam: user already has a team")
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("createTeam: user already has a team"))
+			//fmt.Println("createTeam: user already has a team")
+			//w.WriteHeader(http.StatusForbidden)
+			//w.Write([]byte("createTeam: user already has a team"))
+			fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "user already has a team", 0), err, http.StatusForbidden, "CreateTeam")
 			return
 		}
 
@@ -125,17 +119,20 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		if result := db.Create(&invite); result.Error != nil {
-			fmt.Println("createTeam: create:", result.Error)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("createTeam: create: " + result.Error.Error()))
+			//fmt.Println("createTeam: create:", result.Error)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("createTeam: create: " + result.Error.Error()))
+			fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v", result.Error)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 			return
 		}
 
 	}
 
-	w.WriteHeader(http.StatusOK)
-	// write team id in json
-	w.Write([]byte("{\"id\": " + fmt.Sprint(team.ID) + "}"))
+	//w.WriteHeader(http.StatusOK)
+	//// write team id in json
+	//w.Write([]byte("{\"id\": " + fmt.Sprint(team.ID) + "}"))
+	models.RespHandler(w, r, models.DefaultPosResponse(team.ID), nil, http.StatusCreated, "CreateTeam")
 }
 
 // func CreateProject(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -212,34 +209,19 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseInvite := models.ParseInvite{}
 	err := json.NewDecoder(r.Body).Decode(&parseInvite)
 	if err != nil {
-		fmt.Println("inviteUserToTeam: parse:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("inviteUserToTeam: parse: " + err.Error()))
+		//fmt.Println("inviteUserToTeam: parse:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("inviteUserToTeam: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] parse: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "parse: "+err.Error(), 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
 
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
+	sub, err := users.ReturnAuthID(r)
 
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
-		return
-	}
-
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
-		return
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "InviteUserToTeam")
 	}
 
 	captain := models.Users{}
@@ -247,9 +229,11 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// Check if captain is team owner
 	if captain.RoleID != 2 {
-		fmt.Println("inviteUserToTeam: user not team owner", captain.RoleID)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("inviteUserToTeam: user not team owner"))
+		//fmt.Println("inviteUserToTeam: user not team owner", captain.RoleID)
+		//w.WriteHeader(http.StatusUnauthorized)
+		//w.Write([]byte("inviteUserToTeam: user not team owner"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not team owner: %v", captain.RoleID)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user not team owner", 0), err, http.StatusUnauthorized, "InviteUserToTeam")
 		return
 	}
 
@@ -257,16 +241,20 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("id = ?", captain.TeamID).First(&team)
 
 	if team.ID == 0 {
-		fmt.Println("inviteUserToTeam: team not match")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("inviteUserToTeam: team not match"))
+		//fmt.Println("inviteUserToTeam: team not match")
+		//w.WriteHeader(http.StatusNotFound)
+		//w.Write([]byte("inviteUserToTeam: team not match"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not match")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "team not match", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
 	if team.ID != parseInvite.TeamID {
-		fmt.Println("inviteUserToTeam: team not found")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("inviteUserToTeam: team not found"))
+		//fmt.Println("inviteUserToTeam: team not found")
+		//w.WriteHeader(http.StatusNotFound)
+		//w.Write([]byte("inviteUserToTeam: team not found"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not found")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "team not found", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
@@ -275,17 +263,21 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("id = ?", parseInvite.UserID).First(&user)
 
 	if user.ID == 0 {
-		fmt.Println("inviteUserToTeam: user not found")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("inviteUserToTeam: user not found"))
+		//fmt.Println("inviteUserToTeam: user not found")
+		//w.WriteHeader(http.StatusNotFound)
+		//w.Write([]byte("inviteUserToTeam: user not found"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not found")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
 	// Check if user is already in team
 	if user.TeamID != 0 {
-		fmt.Println("inviteUserToTeam: user already in team")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("inviteUserToTeam: user already in team"))
+		//fmt.Println("inviteUserToTeam: user already in team")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("inviteUserToTeam: user already in team"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already in team")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already in team", 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
 
@@ -294,9 +286,11 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("user_id = ? AND team_id = ?", parseInvite.UserID, parseInvite.TeamID).First(&invite)
 
 	if invite.ID != 0 {
-		fmt.Println("inviteUserToTeam: user already invited")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("inviteUserToTeam: user already invited"))
+		//fmt.Println("inviteUserToTeam: user already invited")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("inviteUserToTeam: user already invited"))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already invited")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already invited", 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
 
@@ -309,47 +303,36 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&invite); result.Error != nil {
-		fmt.Println("inviteUserToTeam: create:", result.Error)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("inviteUserToTeam: create: " + result.Error.Error()))
+		//fmt.Println("inviteUserToTeam: create:", result.Error)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("inviteUserToTeam: create: " + result.Error.Error()))
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] create: %v", result.Error)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), err, http.StatusInternalServerError, "InviteUserToTeam")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User invited successfully"))
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusCreated, "InviteUserToTeam")
 }
 
 func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseApply := models.ParseApply{}
 	err := json.NewDecoder(r.Body).Decode(&parseApply)
 	if err != nil {
-		fmt.Println("applyToTeam: parse:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("applyToTeam: parse: " + err.Error()))
+		//fmt.Println("applyToTeam: parse:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("applyToTeam: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] parse: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "parse: "+err.Error(), 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
-
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
-		return
-	}
-
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		//fmt.Println("applyToTeam: auth:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("applyToTeam: auth: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
@@ -357,24 +340,30 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("id = ?", sub).First(&user)
 
 	if user.ID == 0 {
-		fmt.Println("applyToTeam: user not found")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("applyToTeam: user not found"))
+		//fmt.Println("applyToTeam: user not found")
+		//w.WriteHeader(http.StatusNotFound)
+		//w.Write([]byte("applyToTeam: user not found"))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not found")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "ApplyToTeam")
 		return
 	}
 
 	if user.ID != parseApply.UserID {
-		fmt.Println("applyToTeam: user not match")
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("applyToTeam: user not match"))
+		//fmt.Println("applyToTeam: user not match")
+		//w.WriteHeader(http.StatusNotFound)
+		//w.Write([]byte("applyToTeam: user not match"))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not match")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not match", 0), err, http.StatusNotFound, "ApplyToTeam")
 		return
 	}
 
 	// Check if user is already in team
 	if user.TeamID != 0 {
-		fmt.Println("applyToTeam: user already in team")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("applyToTeam: user already in team"))
+		//fmt.Println("applyToTeam: user already in team")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("applyToTeam: user already in team"))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already in team")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already in team", 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
@@ -383,9 +372,11 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Where("user_id = ? AND team_id = ?", parseApply.UserID, parseApply.TeamID).First(&invite)
 
 	if invite.ID != 0 {
-		fmt.Println("applyToTeam: user already invited")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("applyToTeam: user already invited"))
+		//fmt.Println("applyToTeam: user already invited")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("applyToTeam: user already invited"))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already invited")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already invited", 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
@@ -398,41 +389,28 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&invite); result.Error != nil {
-		fmt.Println("applyToTeam: create:", result.Error)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("applyToTeam: create: " + result.Error.Error()))
+		//fmt.Println("applyToTeam: create:", result.Error)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("applyToTeam: create: " + result.Error.Error()))
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] create: %v", result.Error)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), err, http.StatusInternalServerError, "ApplyToTeam")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User applied successfully"))
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusCreated, "ApplyToTeam")
 }
 
 func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//get user
 	user := models.Users{}
 
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
-
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
-		return
-	}
-
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		//fmt.Println("recommendTeam: auth:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("recommendTeam: auth: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ RecommendTeam ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "RecommendTeam")
 		return
 	}
 
@@ -442,9 +420,11 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var userTechnologies []models.Technologies
 	err = db.Model(&user).Association("Technologies").Find(&userTechnologies)
 	if err != nil {
-		fmt.Println("get user technologies: find:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("get user technologies: find: " + err.Error()))
+		//fmt.Println("get user technologies: find:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("get user technologies: find: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ RecommendTeam ] get user technologies: find: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get user technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 		return
 	}
 
@@ -457,9 +437,11 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, team := range teams {
 		err := db.Model(&team).Association("Technologies").Find(&teamsTechnologies)
 		if err != nil {
-			fmt.Println("get teams technologies: find:", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("get teams technologies: find: " + err.Error()))
+			//fmt.Println("get teams technologies: find:", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("get teams technologies: find: " + err.Error()))
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams technologies: find: %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
 	}
@@ -469,9 +451,11 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, team := range teams {
 		err := db.Model(&team).Association("Projects").Find(&teamsProjects)
 		if err != nil {
-			fmt.Println("recommendTeam: get teams projects:", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("recommendTeam: get teams projects: " + err.Error()))
+			//fmt.Println("recommendTeam: get teams projects:", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("recommendTeam: get teams projects: " + err.Error()))
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects: %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams projects: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
 	}
@@ -481,9 +465,11 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, project := range teamsProjects {
 		err := db.Model(&project).Association("Technologies").Find(&teamsProjectsTechnologies)
 		if err != nil {
-			fmt.Println("get teams projects technologies: find:", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("get teams projects technologies: find: " + err.Error()))
+			//fmt.Println("get teams projects technologies: find:", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("get teams projects technologies: find: " + err.Error()))
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects technologies: find: %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams projects technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
 	}
@@ -516,15 +502,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	//show teams
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(teamsWithMostCommonTechnologiesAndMostCommonTechnologiesInProjects)
-	if err != nil {
-		fmt.Println("recommend team: encode:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("recommend team: encode: " + err.Error()))
-		return
-	}
+	models.RespHandler(w, r, teamsWithMostCommonTechnologiesAndMostCommonTechnologiesInProjects, nil, http.StatusOK, "RecommendTeam")
 }
 
 func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -534,32 +512,18 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err := json.NewDecoder(r.Body).Decode(&parseAccept)
 	if err != nil {
-		fmt.Println("accept user to team: decode:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("accept user to team: decode: " + err.Error()))
-		return
-	}
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
-
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
+		//fmt.Println("accept user to team: decode:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("accept user to team: decode: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: decode: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: decode: "+err.Error(), 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
 		return
 	}
 
@@ -569,16 +533,20 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Where("id = ?", parseAccept.UserID).First(&parseUser)
 	if parseUser.ID == 0 {
-		fmt.Println("accept user to team: user not found")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("accept user to team: user not found"))
+		//fmt.Println("accept user to team: user not found")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("accept user to team: user not found"))
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user not found")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user not found", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
 	if parseUser.TeamID != 0 {
-		fmt.Println("accept user to team: user already in team")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("accept user to team: user already in team"))
+		//fmt.Println("accept user to team: user already in team")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("accept user to team: user already in team"))
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user already in team")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user already in team", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
@@ -596,15 +564,19 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		if user.RoleID == 2 {
 			db.Model(&parseUser).Update("team_id", team.ID)
 		} else {
-			fmt.Println("accept user to team: user is not a team leader")
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("accept user to team: user is not a team leader"))
+			//fmt.Println("accept user to team: user is not a team leader")
+			//w.WriteHeader(http.StatusBadRequest)
+			//w.Write([]byte("accept user to team: user is not a team leader"))
+			fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user is not a team leader")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept user to team: user is not a team leader", 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
 			return
 		}
 	}
 
 	//delete invitation
 	db.Where("user_id = ? AND team_id = ?", parseUser.ID, team.ID).Delete(&models.Invite{})
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptUserToTeam")
 }
 
 func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -705,22 +677,11 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 	}
 
-	//return teams
-	w.Header().Set("Content-Type", "application/json")
-	// return { "teams": teams }
-	err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"teams": teams,
-	})
-	if err != nil {
-		fmt.Println("get teams: encode:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("get teams: encode: " + err.Error()))
-		return
-	}
+	models.RespHandler(w, r, models.DefaultPosResponse(teams), nil, http.StatusOK, "GetTeams")
 }
 
 func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	// return first three users that match the search query
+	// return first three searchView that match the search query
 
 	// get query search=...
 	query := r.URL.Query().Get("search")
@@ -728,61 +689,38 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//get user from cookie or bearer token
 	var user models.Users
 
-	cookie, err := r.Cookie("access_token")
-	authorizationHeader := r.Header.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-	accessToken := ""
-
-	if len(fields) != 0 && fields[0] == "Bearer" {
-		accessToken = fields[1]
-	} else if err == nil {
-		accessToken = cookie.Value
-	} else {
-		fmt.Println("get user: access token: get:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: get: " + err.Error()))
-		return
-	}
-
-	sub, err := jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Println("get user: access token: validate:", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("get user: access token: validate: " + err.Error()))
-		return
+		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "SearchInvitees")
 	}
 
-	db.Table("users").Where("id = ?", sub).First(&user)
+	db.Table("searchView").Where("id = ?", sub).First(&user)
 
 	//check if user is captain
 	if user.RoleID != 2 {
-		fmt.Println("search invitees: user is not captain")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("search invitees: user is not captain"))
+		//fmt.Println("search invitees: user is not captain")
+		//w.WriteHeader(http.StatusUnauthorized)
+		//w.Write([]byte("search invitees: user is not captain"))
+		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is not captain")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user is not captain", 0), errors.New("user is not captain"), http.StatusUnauthorized, "SearchInvitees")
 		return
 	}
 
-	// get users from db
-	var users []models.SearchView
-	// use searchuser function to get users from db
-	db.Raw("SELECT * FROM searchuser(?, ?)", query, user.TeamID).Scan(&users)
+	// get searchView from db
+	var searchView []models.SearchView
+	// use searchuser function to get searchView from db
+	db.Raw("SELECT * FROM searchuser(?, ?)", query, user.TeamID).Scan(&searchView)
 
-	//remove user from users if exists
-	for i, u := range users {
+	//remove user from searchView if exists
+	for i, u := range searchView {
 		if user.ID == u.ID {
-			users = append(users[:i], users[i+1:]...)
+			searchView = append(searchView[:i], searchView[i+1:]...)
 		}
 	}
 
-	// return users
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(users)
-	if err != nil {
-		fmt.Println("search invitees: encode:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("search invitees: encode: " + err.Error()))
-		return
-	}
+	// return searchView
+	models.RespHandler(w, r, models.DefaultPosResponse(searchView), nil, http.StatusOK, "SearchInvitees")
 }
 
 func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -791,9 +729,11 @@ func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get user id from url
 	userID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		fmt.Println("get team id: parse:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("get team id: parse: " + err.Error()))
+		//fmt.Println("get team id: parse:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("get team id: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ GetTeamID ] parse: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeamID")
 		return
 	}
 
@@ -801,15 +741,16 @@ func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var teamID int
 	err = db.Table("users").Where("id = ?", userID).Select("team_id").Row().Scan(&teamID)
 	if err != nil {
-		fmt.Println("get team id: select:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("get team id: select: " + err.Error()))
+		//fmt.Println("get team id: select:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("get team id: select: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ GetTeamID ] select: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeamID")
 		return
 	}
 
 	// return team id
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"data\": " + strconv.Itoa(teamID) + "}"))
+	models.RespHandler(w, r, models.DefaultPosResponse(teamID), nil, http.StatusOK, "GetTeamID")
 }
 
 func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -818,9 +759,11 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get team id from url
 	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		fmt.Println("get captain id: parse:", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("get captain id: parse: " + err.Error()))
+		//fmt.Println("get captain id: parse:", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("get captain id: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ GetCaptainID ] parse: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetCaptainID")
 		return
 	}
 
@@ -828,13 +771,14 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var captainID int
 	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 	if err != nil {
-		fmt.Println("get captain id: select:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("get captain id: select: " + err.Error()))
+		//fmt.Println("get captain id: select:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("get captain id: select: " + err.Error()))
+		fmt.Printf("[ ERROR ] [ GetCaptainID ] select: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetCaptainID")
 		return
 	}
 
 	// return captain id
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"data\": " + strconv.Itoa(captainID) + "}"))
+	models.RespHandler(w, r, models.DefaultPosResponse(captainID), nil, http.StatusOK, "GetCaptainID")
 }

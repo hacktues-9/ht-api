@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/hacktues-9/API/pkg/models"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,7 +20,7 @@ func Init(DB *gorm.DB) {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
-	admin := r.PathPrefix("/admin").Subrouter()
+	//admin := r.PathPrefix("/admin").Subrouter()
 	// mentor := r.PathPrefix("/mentor").Subrouter()
 	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
@@ -27,7 +28,7 @@ func Init(DB *gorm.DB) {
 
 	r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { // route - /api/ping
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("pong"))
+		models.RespHandler(w, r, models.DefaultPosResponse("pong"), nil, http.StatusOK, "ping")
 	})
 
 	user.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/discord
@@ -66,9 +67,9 @@ func Init(DB *gorm.DB) {
 		email.ValidateEmail(w, r, DB)
 	})
 
-	admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
-		users.FetchUser(w, r, DB)
-	})
+	//admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
+	//	users.FetchUser(w, r, DB)
+	//})
 
 	auth.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/login
 		users.Login(w, r, DB)
@@ -79,11 +80,11 @@ func Init(DB *gorm.DB) {
 	})
 
 	auth.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/logout
-		users.Logout(w, r, DB)
+		users.Logout(w)
 	})
 
 	auth.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/me
-		users.GetUserID(w, r, DB)
+		users.GetUserID(w, r)
 	})
 
 	user.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get

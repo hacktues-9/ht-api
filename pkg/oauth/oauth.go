@@ -3,6 +3,7 @@ package oauth
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/hacktues-9/API/pkg/jwt"
 	"io"
@@ -30,9 +31,8 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	clientId := "1009547623637712977"
 	clientSecret := discordClientSecret
 	if code == "" {
-		fmt.Println("Discord: code is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Discord: code is empty"))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] code is empty\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "code is empty", 0), errors.New("code is empty"), http.StatusBadRequest, "GetDiscordInfo")
 		return
 	}
 
@@ -49,16 +49,21 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	resp, err := http.Post("https://discord.com/api/v10/oauth2/token", "application/x-www-form-urlencoded", postBody)
 	if err != nil {
-		fmt.Println("Discord: Error while getting token", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: Error while getting token" + err.Error()))
+		//fmt.Println("Discord: Error while getting token", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: Error while getting token" + err.Error()))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] Error while getting token: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "GetDiscordInfo")
+		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Discord: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			//fmt.Println("Discord: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ GetDiscordInfo ] Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "GetDiscordInfo")
 			return
 		}
 	}(resp.Body)
@@ -66,9 +71,11 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	bearer := &models.DiscordBearer{}
 	err = json.NewDecoder(resp.Body).Decode(&bearer)
 	if err != nil {
-		fmt.Println("Discord: bearer decode error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: bearer decode error" + err.Error()))
+		//fmt.Println("Discord: bearer decode error", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: bearer decode error" + err.Error()))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] bearer decode error: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: bearer decode error"+err.Error(), 0), err, http.StatusInternalServerError, "GetDiscordInfo")
 		return
 	}
 
@@ -76,9 +83,11 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	req, err := http.NewRequest("GET", "https://discord.com/api/v10/users/@me", nil)
 	if err != nil {
-		fmt.Println("Discord: Error on request:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: Error on request: " + err.Error()))
+		//fmt.Println("Discord: Error on request:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: Error on request: " + err.Error()))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] Error on request: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "GetDiscordInfo")
 		return
 	}
 
@@ -87,17 +96,21 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client := &http.Client{}
 	resps, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Discord: Error on response.\n[ERRO] -", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Discord: Error on response.\n[ERRO] -" + err.Error()))
+		//fmt.Println("Discord: Error on response.\n[ERRO] -", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Discord: Error on response.\n[ERRO] -" + err.Error()))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] Error on response: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: Error on response.\n[ERRO] -"+err.Error(), 0), err, http.StatusBadRequest, "GetDiscordInfo")
 		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Discord: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			//fmt.Println("Discord: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ GetDiscordInfo ] Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "GetDiscordInfo")
 			return
 		}
 	}(resps.Body)
@@ -105,9 +118,11 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	discord := &models.Discord{}
 	err = json.NewDecoder(resps.Body).Decode(&discord)
 	if err != nil {
-		fmt.Println("discord: parse: ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("discord: parse: " + err.Error()))
+		//fmt.Println("discord: parse: ", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("discord: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ][ GetDiscordInfo ] parse: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "discord: parse: "+err.Error(), 0), err, http.StatusBadRequest, "GetDiscordInfo")
 		return
 	}
 
@@ -125,9 +140,11 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client_id := "4f5f1918bf58eb0cccd4"
 	client_secret := githubClientSecret
 	if code == "" {
-		fmt.Println("Github: code is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Github: code is empty"))
+		//fmt.Println("Github: code is empty")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Github: code is empty"))
+		fmt.Printf("[ ERROR ][ GetGithubInfo ] code is empty\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: code is empty", 0), nil, http.StatusBadRequest, "GetGithubInfo")
 		return
 	}
 
@@ -141,16 +158,21 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	resp, err := http.Post("https://github.com/login/oauth/access_token", "application/x-www-form-urlencoded", postBody)
 	if err != nil {
-		fmt.Println("Github: Error while getting token", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Github: Error while getting token" + err.Error()))
+		//fmt.Println("Github: Error while getting token", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Github: Error while getting token" + err.Error()))
+		fmt.Printf("[ ERROR ][ GetGithubInfo ] Error while getting token: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "GetGithubInfo")
+		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Github: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Github: Error while closing body" + err.Error()))
+			//fmt.Println("Github: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Github: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ GetGithubInfo ] Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "GetGithubInfo")
 			return
 		}
 	}(resp.Body)
@@ -163,9 +185,11 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		fmt.Println("Github: Error on request:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Github: Error on request: " + err.Error()))
+		//fmt.Println("Github: Error on request:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Github: Error on request: " + err.Error()))
+		fmt.Printf("[ ERROR ][ GetGithubInfo ] Error on request: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "GetGithubInfo")
 		return
 	}
 
@@ -174,17 +198,21 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client := &http.Client{}
 	resps, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Github: Error on response.\n[ERRO] -", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Github: Error on response.\n[ERRO] -" + err.Error()))
+		//fmt.Println("Github: Error on response.\n[ERRO] -", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Github: Error on response.\n[ERRO] -" + err.Error()))
+		fmt.Printf("[ ERROR ][ GetGithubInfo ] Error on response: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: Error on response.\n[ERRO] -"+err.Error(), 0), err, http.StatusBadRequest, "GetGithubInfo")
 		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Github: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Github: Error while closing body" + err.Error()))
+			//fmt.Println("Github: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Github: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ GetGithubInfo ] Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "GetGithubInfo")
 			return
 		}
 	}(resps.Body)
@@ -192,9 +220,11 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	github := &models.Github{}
 	err = json.NewDecoder(resps.Body).Decode(&github)
 	if err != nil {
-		fmt.Println("github: parse: ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("github: parse: " + err.Error()))
+		//fmt.Println("github: parse: ", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("github: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ][ GetGithubInfo ] github: parse: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "github: parse: "+err.Error(), 0), err, http.StatusBadRequest, "GetGithubInfo")
 		return
 	}
 
@@ -202,7 +232,6 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Model(&models.Socials{}).Where("ID = ?", id).Update("GithubID", github.ID)
 
 	http.Redirect(w, r, "http://localhost:3000/", http.StatusMovedPermanently)
-
 }
 
 func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -213,9 +242,11 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client_secret := githubClientSecret
 
 	if code == "" {
-		fmt.Println("Github: code is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Github: code is empty"))
+		//fmt.Println("Github: code is empty")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Github: code is empty"))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: code is empty\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: code is empty", 0), nil, http.StatusBadRequest, "LoginGithub")
 		return
 	}
 
@@ -229,17 +260,21 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	resp, err := http.Post("https://github.com/login/oauth/access_token", "application/x-www-form-urlencoded", postBody)
 	if err != nil {
-		fmt.Println("Github: Error while getting token", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Github: Error while getting token" + err.Error()))
+		//fmt.Println("Github: Error while getting token", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Github: Error while getting token" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while getting token: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
 		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Github: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Github: Error while closing body" + err.Error()))
+			//fmt.Println("Github: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Github: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
 			return
 		}
 	}(resp.Body)
@@ -252,9 +287,11 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		fmt.Println("Github: Error on request:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Github: Error on request: " + err.Error()))
+		//fmt.Println("Github: Error on request:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Github: Error on request: " + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error on request: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
 		return
 	}
 
@@ -263,17 +300,21 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client := &http.Client{}
 	resps, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Github: Error on response.\n[ERRO] -", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Github: Error on response.\n[ERRO] -" + err.Error()))
+		//fmt.Println("Github: Error on response.\n[ERRO] -", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Github: Error on response.\n[ERRO] -" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error on response: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: Error on response: "+err.Error(), 0), err, http.StatusBadRequest, "LoginGithub")
 		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Github: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Github: Error while closing body" + err.Error()))
+			//fmt.Println("Github: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Github: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
 			return
 		}
 	}(resps.Body)
@@ -283,18 +324,22 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err = json.NewDecoder(resps.Body).Decode(&github)
 	if err != nil {
-		fmt.Println("github: parse: ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("github: parse: " + err.Error()))
+		//fmt.Println("github: parse: ", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("github: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: parse: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: parse: "+err.Error(), 0), err, http.StatusBadRequest, "LoginGithub")
 		return
 	}
 
 	db.Table("users").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN github ON socials.github_id = github.id").Where("github.github_user_id = ?", github.GithubUserID).First(&user)
 
 	if user.ID == 0 {
-		fmt.Println("Github: User not found")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Github: User not found"))
+		//fmt.Println("Github: User not found")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Github: User not found"))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: User not found\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: User not found", 0), err, http.StatusBadRequest, "LoginGithub")
 		return
 	}
 
@@ -302,9 +347,11 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	accessCookie, refreshCookie, err := jwt.GenerateCookies(user.ID)
 	if err != nil {
-		fmt.Println("Github: Error while generating tokens", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Github: Error while generating tokens" + err.Error()))
+		//fmt.Println("Github: Error while generating tokens", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Github: Error while generating tokens" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while generating tokens: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while generating tokens"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
 		return
 	}
 
@@ -321,9 +368,11 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	clientId := "1009547623637712977"
 	clientSecret := discordClientSecret
 	if code == "" {
-		fmt.Println("Discord: code is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Discord: code is empty"))
+		//fmt.Println("Discord: code is empty")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Discord: code is empty"))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: code is empty\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: code is empty", 0), nil, http.StatusBadRequest, "LoginDiscord")
 		return
 	}
 
@@ -340,16 +389,20 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	resp, err := http.Post("https://discord.com/api/v10/oauth2/token", "application/x-www-form-urlencoded", postBody)
 	if err != nil {
-		fmt.Println("Discord: Error while getting token", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: Error while getting token" + err.Error()))
+		//fmt.Println("Discord: Error while getting token", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: Error while getting token" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while getting token: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Discord: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			//fmt.Println("Discord: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
 			return
 		}
 	}(resp.Body)
@@ -357,9 +410,11 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	bearer := &models.DiscordBearer{}
 	err = json.NewDecoder(resp.Body).Decode(&bearer)
 	if err != nil {
-		fmt.Println("Discord: bearer decode error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: bearer decode error" + err.Error()))
+		//fmt.Println("Discord: bearer decode error", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: bearer decode error" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: bearer decode error: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: bearer decode error"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
 		return
 	}
 
@@ -367,9 +422,12 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	req, err := http.NewRequest("GET", "https://discord.com/api/v10/users/@me", nil)
 	if err != nil {
-		fmt.Println("Discord: Error on request:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: Error on request: " + err.Error()))
+		//fmt.Println("Discord: Error on request:", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: Error on request: " + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error on request: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+
 		return
 	}
 
@@ -378,17 +436,21 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	client := &http.Client{}
 	resps, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Discord: Error on response.\n[ERRO] -", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Discord: Error on response.\n[ERRO] -" + err.Error()))
+		//fmt.Println("Discord: Error on response.\n[ERRO] -", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Discord: Error on response.\n[ERRO] -" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error on response: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: Error on response: "+err.Error(), 0), err, http.StatusBadRequest, "LoginDiscord")
 		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Discord: Error while closing body", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			//fmt.Println("Discord: Error while closing body", err)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
+			fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while closing body: %s\n", err.Error())
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
 			return
 		}
 	}(resps.Body)
@@ -398,18 +460,22 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err = json.NewDecoder(resps.Body).Decode(&discord)
 	if err != nil {
-		fmt.Println("discord: parse: ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("discord: parse: " + err.Error()))
+		//fmt.Println("discord: parse: ", err)
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("discord: parse: " + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] discord: parse: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "discord: parse: "+err.Error(), 0), err, http.StatusBadRequest, "LoginDiscord")
 		return
 	}
 
 	db.Table("users").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN discord ON socials.discord_id = discord.id").Where("discord.discord_user_id = ?", discord.DiscordUserID).First(&user)
 
 	if user.ID == 0 {
-		fmt.Println("Discord: User not found")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Discord: User not found"))
+		//fmt.Println("Discord: User not found")
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte("Discord: User not found"))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: User not found\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: User not found", 0), err, http.StatusBadRequest, "LoginDiscord")
 		return
 	}
 
@@ -417,9 +483,11 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	accessCookie, refreshCookie, err := jwt.GenerateCookies(user.ID)
 	if err != nil {
-		fmt.Println("Discord: Error while generating tokens", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Discord: Error while generating tokens" + err.Error()))
+		//fmt.Println("Discord: Error while generating tokens", err)
+		//w.WriteHeader(http.StatusInternalServerError)
+		//w.Write([]byte("Discord: Error while generating tokens" + err.Error()))
+		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while generating tokens: %s\n", err.Error())
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while generating tokens"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
 		return
 	}
 

@@ -1,51 +1,37 @@
 package users
 
 import (
-	"encoding/json"
-	"net/http"
-
+	"fmt"
+	"github.com/hacktues-9/API/pkg/jwt"
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"net/http"
+	"strings"
 )
 
-func FetchUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	id := r.URL.Query().Get("id")
-	resp := ParseUser(id, db)
+func ReturnAuthID(r *http.Request) (uint, error) {
+	cookie, err := r.Cookie("access_token")
+	authorizationHeader := r.Header.Get("Authorization")
+	fields := strings.Fields(authorizationHeader)
+	accessToken := ""
+	var sub uint
 
-	json.NewEncoder(w).Encode(resp)
-}
-
-func ParseUser(id interface{}, db *gorm.DB) map[string]interface{} {
-	user := models.Users{}
-	userTech := []models.UserTechnologies{}
-	userAllergies := []models.InfoAllergies{}
-	tech := []models.Technologies{}
-	allergies := []models.Allergies{}
-
-	db.Preload(clause.Associations).Preload("Info.Class").Preload("Info.EatingPreference").Preload("Info.Socials").Preload("Info.ShirtSize").Preload("Info.Socials.Discord").Preload("Info.Socials.Github").Preload("Team.Project").Preload("Team.Invites").Where("ID = ?", id).First(&user)
-	db.Where("user_id = ?", id).Find(&userTech)
-	db.Where("info_id = ?", user.InfoID).Find(&userAllergies)
-
-	for _, techID := range userTech {
-		var tempTech models.Technologies
-		db.Where("ID = ?", techID.TechnologiesID).First(&tempTech)
-		tech = append(tech, tempTech)
+	if len(fields) != 0 && fields[0] == "Bearer" {
+		accessToken = fields[1]
+	} else if err == nil {
+		accessToken = cookie.Value
+	} else {
+		fmt.Println("get user: access token: get:", err)
+		return 0, err
 	}
 
-	for _, allergyID := range userAllergies {
-		var tempAllergy models.Allergies
-		db.Where("ID = ?", allergyID.AllergiesID).First(&tempAllergy)
-		allergies = append(allergies, tempAllergy)
+	sub, err = jwt.ValidateToken(accessToken, accessTokenPublicKey)
+	if err != nil {
+		fmt.Println("get user: access token: validate:", err)
+		return 0, err
 	}
 
-	resp := map[string]interface{}{
-		"user":      user,
-		"tech":      tech,
-		"allergies": allergies,
-	}
-
-	return resp
+	return sub, nil
 }
 
 func returnDefaultIDs(db *gorm.DB, user *models.RegisterUser) (uint, uint, uint, uint, []uint, []uint) {
