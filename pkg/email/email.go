@@ -55,7 +55,7 @@ func ValidateEmailToken(token string, publicKey string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("ValidateEmailToken: %w", err)
 	}
-	return claims.(string), nil
+	return strconv.FormatUint(uint64(claims), 10), nil
 }
 
 func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

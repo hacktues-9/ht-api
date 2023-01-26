@@ -252,7 +252,8 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	http.SetCookie(w, &refreshCookie)
 	http.SetCookie(w, &accessCookie)
-	http.Redirect(w, r, "http://localhost:3000/", http.StatusFound)
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "Login")
 }
 
 func GetUserID(w http.ResponseWriter, r *http.Request) {
@@ -301,7 +302,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//get Technologies for user
 	var technologies []models.Technologies
 	var technologiesView []string
-	db.Table("technologies").Joins("JOIN user_technologies ON user_technologies.technology_id = technologies.id").Where("user_technologies.user_id = ?", id).Scan(&technologies)
+	db.Table("technologies").Joins("JOIN user_technologies ON user_technologies.technologies_id = technologies.id").Where("user_technologies.user_id = ?", id).Scan(&technologies)
 	for _, technology := range technologies {
 		technologiesView = append(technologiesView, technology.Technology)
 	}
@@ -343,4 +344,42 @@ func Logout(w http.ResponseWriter) {
 	http.SetCookie(w, &refreshCookie)
 	http.SetCookie(w, &accessCookie)
 	w.WriteHeader(http.StatusOK)
+}
+
+func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	var parseChangeUser models.ParseChangeUser
+
+	err := json.NewDecoder(r.Body).Decode(&parseChangeUser)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateUser ] json decode: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "json decode: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateUser")
+		return
+	}
+
+	sub, err := ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateUser ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "UpdateUser")
+		return
+	}
+
+	if float64(sub) != float64(parseChangeUser.ID) {
+		fmt.Printf("[ ERROR ] [ UpdateUser ] access token: validate: wrong id %v %v", sub, parseChangeUser.ID)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "access token: validate: wrong id"+strconv.Itoa(int(sub))+" "+strconv.Itoa(int(parseChangeUser.ID)), 0), err, http.StatusUnauthorized, "UpdateUser")
+	}
+
+	//to change technologies we need to delete all technologies for user and add new ones
+	if len(parseChangeUser.Technologies) > 0 {
+		db.Exec("DELETE FROM user_technologies WHERE user_id = ?", sub)
+		for _, technology := range parseChangeUser.Technologies {
+			var technologyID int
+			db.Table("technologies").Where("technology = ?", technology).Select("id").Row().Scan(&technologyID)
+			db.Create(&models.UserTechnologies{UserID: sub, TechnologiesID: uint(technologyID)})
+		}
+	}
+
+	//change LookingForTeam
+	db.Model(&models.Users{}).Where("id = ?", sub).Update("looking_for_team", parseChangeUser.LookingForTeam)
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateUser")
 }

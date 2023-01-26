@@ -141,6 +141,8 @@ type Users struct {
 
 	Password string `gorm:"not null"`
 
+	LookingForTeam bool `gorm:"default:false"`
+
 	InfoID     uint     `gorm:"unique"`
 	Info       Info     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:InfoID"`
 	SecurityID uint     `gorm:"unique"`

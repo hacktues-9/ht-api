@@ -27,7 +27,11 @@ func Init() *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&models.Class{})
+	err := db.AutoMigrate(&models.Class{})
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	db.AutoMigrate(&models.Role{})
 	db.AutoMigrate(&models.EatingPreference{})
 	db.AutoMigrate(&models.Allergies{})
@@ -58,7 +62,62 @@ func PopulateDefault(db *gorm.DB) {
 	var eatingPreferenceValues = []string{"няма", "вегетарианец", "веган"}
 	var allergiesValues = []string{"яйца", "ядки", "мляко", "глутен"}
 	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL", "XXL"}
-	var technologiesValues = []string{"HTML", "C++", "TensorFlow", "Etherium", "JavaScript", "TypeScript", "Angular.js", "Samza", "IOT", "Raspberry Pi", "Rust", "Scala", "Objective C", "Node.js", "Java", "SQLite", "Kubernetes", "Machine Learing", "VR", "C#", "Kotlin", "Vue.js", "MongoDB", "RocksDB", "Perl", "C", "Go", "Flutter", "Flask", "Cassandra", "Arduino", "Docker", "PostgreSQL", "Linux", "Ruby", "Hadoop", "Swift", "Redis", "Python", "Assembler", "MySQL", "InfluxDB", "RDS", "NoSQL", "Django", "PWA", "Embedded", "MapReduce", "CSS", "Pytorch", "PHP", "React.js", "Lua", "R", "AR", "SQL", "Kafka", "Blockchain", "Unity3D"}
+	var technologiesValues = []string{"React",
+		"Angular",
+		"Vue",
+		"Node",
+		"Express",
+		"MongoDB",
+		"MySQL",
+		"PostgreSQL",
+		"Docker",
+		"Kubernetes",
+		"AWS",
+		"Azure",
+		"Google Cloud",
+		"Git",
+		"C",
+		"C++",
+		"C#",
+		"Java",
+		"Python",
+		"PHP",
+		"HTML",
+		"CSS",
+		"JavaScript",
+		"TypeScript",
+		"NoSQL",
+		"REST",
+		"Ruby",
+		"Ruby on Rails",
+		"Swift",
+		"Kotlin",
+		"Go",
+		"Rust",
+		"Elixir",
+		"Svelte",
+		"Bash",
+		"Vim",
+		"Linux",
+		"TensorFlow",
+		"Apache",
+		"Nginx",
+		"Deno",
+		"Next",
+		"Jest",
+		"Dart",
+		"Flutter",
+		"Firebase",
+		"Vercel",
+		"Netlify",
+		"Material UI",
+		"Tailwind",
+		"SASS",
+		"Webpack",
+		"Babel",
+		"JQuery",
+		"Bootstrap",
+	}
 
 	for _, class := range classValues {
 		db.Create(&models.Class{Name: class})

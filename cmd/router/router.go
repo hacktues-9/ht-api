@@ -87,8 +87,12 @@ func Init(DB *gorm.DB) {
 		users.GetUserID(w, r)
 	})
 
-	user.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get
+	user.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get
 		users.GetUser(w, r, DB)
+	})
+
+	user.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/update
+		users.UpdateUser(w, r, DB)
 	})
 
 	team.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/create
@@ -124,7 +128,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://hacktues.bg", "http://localhost:3000/", "http://localhost:8080/"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},

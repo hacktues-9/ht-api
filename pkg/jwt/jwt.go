@@ -80,7 +80,7 @@ func ValidateToken(token string, publicKey string) (uint, error) {
 		return 0, fmt.Errorf("validateToken: claims: %w", err)
 	}
 
-	return uint((*claims)["sub"].(int)), nil
+	return uint((*claims)["sub"].(float64)), nil
 }
 
 func RefreshAccessToken(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

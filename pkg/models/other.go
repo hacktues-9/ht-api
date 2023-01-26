@@ -93,3 +93,9 @@ type ParseTeamView struct {
 	Github         string `json:"github"`
 	Approved       bool   `json:"approved"`
 }
+
+type ParseChangeUser struct {
+	ID             uint     `json:"id"`
+	Technologies   []string `json:"technologies"`
+	LookingForTeam bool     `json:"lookingForTeam"`
+}
