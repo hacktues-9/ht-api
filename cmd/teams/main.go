@@ -23,22 +23,22 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] %v", err)
+		fmt.Printf("[ ERROR ] [ CreateTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "CreateTeam")
 		return
 	}
 
-	db.Where("id = ?", sub).First(&user)
+	db.Where("id = ?\n", sub).First(&user)
 
 	err = json.NewDecoder(r.Body).Decode(&parseTeam)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] parse: %v", err)
+		fmt.Printf("[ ERROR ] [ CreateTeam ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
 
 	if user.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team")
+		fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "user already has a team", 0), err, http.StatusForbidden, "CreateTeam")
 		return
 	}
@@ -49,7 +49,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Omit("ProjectID", "InvitesID").Create(&team); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
@@ -58,7 +58,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	for _, tech := range parseTeam.Technologies {
 		var tempTech models.Technologies
-		db.Where("technology = ?", tech).First(&tempTech)
+		db.Where("technology = ?\n", tech).First(&tempTech)
 		technologies = append(technologies, tempTech.ID)
 	}
 
@@ -72,7 +72,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	user.RoleID = 2
 
 	if result := db.Save(&user); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] save: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ CreateTeam ] save: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "save: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 		return
 	}
@@ -80,7 +80,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//send invites to invitees
 	for _, invitee := range parseTeam.Invitees {
 		var tempUser models.Users
-		db.Where("id = ?", invitee.ID).First(&tempUser)
+		db.Where("id = ?\n", invitee.ID).First(&tempUser)
 		if tempUser.ID == 0 {
 			fmt.Printf("[ ERROR ] [ CreateTeam ] user not found")
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "CreateTeam")
@@ -88,7 +88,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		if tempUser.TeamID != 0 {
-			fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team")
+			fmt.Printf("[ ERROR ] [ CreateTeam ] user already has a team\n")
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "user already has a team", 0), err, http.StatusForbidden, "CreateTeam")
 			return
 		}
@@ -101,7 +101,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		if result := db.Create(&invite); result.Error != nil {
-			fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v", result.Error)
+			fmt.Printf("[ ERROR ] [ CreateTeam ] create: %v\n", result.Error)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
 			return
 		}
@@ -149,7 +149,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 // 		return
 // 	}
 
-// 	db.Where("id = ?", sub).First(&team)
+// 	db.Where("id = ?\n", sub).First(&team)
 
 // 	project = models.Project{
 // 		Name:        parseProject.Name,
@@ -168,7 +168,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 // 	for _, tech := range parseProject.Technologies {
 // 		var tempTech models.Technologies
-// 		db.Where("technology = ?", tech).First(&tempTech)
+// 		db.Where("technology = ?\n", tech).First(&tempTech)
 // 		technologies = append(technologies, tempTech.ID)
 // 	}
 
@@ -185,7 +185,7 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseInvite := models.ParseInvite{}
 	err := json.NewDecoder(r.Body).Decode(&parseInvite)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] parse: %v", err)
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "parse: "+err.Error(), 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
@@ -193,58 +193,58 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	sub, err := users.ReturnAuthID(r)
 
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] %v", err)
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "InviteUserToTeam")
 	}
 
 	captain := models.Users{}
-	db.Where("id = ?", sub).First(&captain)
+	db.Where("id = ?\n", sub).First(&captain)
 
 	// Check if captain is team owner
 	if captain.RoleID != 2 {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not team owner: %v", captain.RoleID)
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not team owner: %v\n", captain.RoleID)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user not team owner", 0), err, http.StatusUnauthorized, "InviteUserToTeam")
 		return
 	}
 
 	team := models.Team{}
-	db.Where("id = ?", captain.TeamID).First(&team)
+	db.Where("id = ?\n", captain.TeamID).First(&team)
 
 	if team.ID == 0 {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not match")
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not match\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "team not match", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
 	if team.ID != parseInvite.TeamID {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not found")
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] team not found\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "team not found", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
 	// Check if user exists
 	user := models.Users{}
-	db.Where("id = ?", parseInvite.UserID).First(&user)
+	db.Where("id = ?\n", parseInvite.UserID).First(&user)
 
 	if user.ID == 0 {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not found")
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user not found\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "InviteUserToTeam")
 		return
 	}
 
 	// Check if user is already in team
 	if user.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already in team")
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already in team\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already in team", 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
 
 	// Check if user is already invited
 	invite := models.Invite{}
-	db.Where("user_id = ? AND team_id = ?", parseInvite.UserID, parseInvite.TeamID).First(&invite)
+	db.Where("user_id = ? AND team_id = ?\n", parseInvite.UserID, parseInvite.TeamID).First(&invite)
 
 	if invite.ID != 0 {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already invited")
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] user already invited\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already invited", 0), err, http.StatusBadRequest, "InviteUserToTeam")
 		return
 	}
@@ -258,7 +258,7 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&invite); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), err, http.StatusInternalServerError, "InviteUserToTeam")
 		return
 	}
@@ -270,46 +270,46 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseApply := models.ParseApply{}
 	err := json.NewDecoder(r.Body).Decode(&parseApply)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] parse: %v", err)
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "parse: "+err.Error(), 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] %v", err)
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
 	user := models.Users{}
-	db.Where("id = ?", sub).First(&user)
+	db.Where("id = ?\n", sub).First(&user)
 
 	if user.ID == 0 {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not found")
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not found\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not found", 0), err, http.StatusNotFound, "ApplyToTeam")
 		return
 	}
 
 	if user.ID != parseApply.UserID {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not match")
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user not match\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user not match", 0), err, http.StatusNotFound, "ApplyToTeam")
 		return
 	}
 
 	// Check if user is already in team
 	if user.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already in team")
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already in team\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already in team", 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
 
 	// Check if user is already invited
 	invite := models.Invite{}
-	db.Where("user_id = ? AND team_id = ?", parseApply.UserID, parseApply.TeamID).First(&invite)
+	db.Where("user_id = ? AND team_id = ?\n", parseApply.UserID, parseApply.TeamID).First(&invite)
 
 	if invite.ID != 0 {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already invited")
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] user already invited\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user already invited", 0), err, http.StatusBadRequest, "ApplyToTeam")
 		return
 	}
@@ -323,7 +323,7 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&invite); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ ApplyToTeam ] create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ ApplyToTeam ] create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+result.Error.Error(), 0), err, http.StatusInternalServerError, "ApplyToTeam")
 		return
 	}
@@ -337,18 +337,18 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ RecommendTeam ] %v", err)
+		fmt.Printf("[ ERROR ] [ RecommendTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "RecommendTeam")
 		return
 	}
 
-	db.Where("id = ?", sub).First(&user)
+	db.Where("id = ?\n", sub).First(&user)
 
 	//get user technologies
 	var userTechnologies []models.Technologies
 	err = db.Model(&user).Association("Technologies").Find(&userTechnologies)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ RecommendTeam ] get user technologies: find: %v", err)
+		fmt.Printf("[ ERROR ] [ RecommendTeam ] get user technologies: find: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get user technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 		return
 	}
@@ -362,7 +362,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, team := range teams {
 		err := db.Model(&team).Association("Technologies").Find(&teamsTechnologies)
 		if err != nil {
-			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams technologies: find: %v", err)
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams technologies: find: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
@@ -373,7 +373,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, team := range teams {
 		err := db.Model(&team).Association("Projects").Find(&teamsProjects)
 		if err != nil {
-			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects: %v", err)
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams projects: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
@@ -384,7 +384,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, project := range teamsProjects {
 		err := db.Model(&project).Association("Technologies").Find(&teamsProjectsTechnologies)
 		if err != nil {
-			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects technologies: find: %v", err)
+			fmt.Printf("[ ERROR ] [ RecommendTeam ] get teams projects technologies: find: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get teams projects technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
 			return
 		}
@@ -428,38 +428,38 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err := json.NewDecoder(r.Body).Decode(&parseAccept)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: decode: %v", err)
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: decode: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: decode: "+err.Error(), 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] %v", err)
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
 		return
 	}
 
-	db.Where("id = ?", sub).First(&user)
+	db.Where("id = ?\n", sub).First(&user)
 
 	var parseUser models.Users
 
-	db.Where("id = ?", parseAccept.UserID).First(&parseUser)
+	db.Where("id = ?\n", parseAccept.UserID).First(&parseUser)
 	if parseUser.ID == 0 {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user not found")
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user not found\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user not found", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
 	if parseUser.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user already in team")
+		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user already in team\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user already in team", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
 		return
 	}
 
 	//get team
 	team := models.Team{}
-	db.Where("id = ?", parseAccept.TeamID).First(&team)
+	db.Where("id = ?\n", parseAccept.TeamID).First(&team)
 
 	//if user.ID == parseUser.ID => user is accepting an invitation to join a team
 	//if user.ID == parseUser.ID => user is accepting parseUser to join user's team (user is a team leader)
@@ -471,14 +471,14 @@ func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		if user.RoleID == 2 {
 			db.Model(&parseUser).Update("team_id", team.ID)
 		} else {
-			fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user is not a team leader")
+			fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user is not a team leader\n")
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept user to team: user is not a team leader", 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
 			return
 		}
 	}
 
 	//delete invitation
-	db.Where("user_id = ? AND team_id = ?", parseUser.ID, team.ID).Delete(&models.Invite{})
+	db.Where("user_id = ? AND team_id = ?\n", parseUser.ID, team.ID).Delete(&models.Invite{})
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptUserToTeam")
 }
@@ -540,11 +540,11 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			//get team project
 			if parseTeam.PID != 0 {
 				var teamProject models.Project
-				db.Table("projects").Where("id = ?", parseTeam.PID).First(&teamProject)
+				db.Table("projects").Where("id = ?\n", parseTeam.PID).First(&teamProject)
 
 				//get team project technologies
 				var teamProjectTechnologies []models.Technologies
-				db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
+				db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
 
 				//parse team project technologies
 				var teamProjectTechnologiesParsed []string
@@ -564,7 +564,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 			//get team technologies
 			var teamTechnologies []models.Technologies
-			db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
+			db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
 
 			//parse team technologies
 			var teamTechnologiesParsed []string
@@ -591,15 +591,15 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v", err)
+		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "SearchInvitees")
 	}
 
-	db.Table("searchView").Where("id = ?", sub).First(&user)
+	db.Table("searchView").Where("id = ?\n", sub).First(&user)
 
 	//check if user is captain
 	if user.RoleID != 2 {
-		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is not captain")
+		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is not captain\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user is not captain", 0), errors.New("user is not captain"), http.StatusUnauthorized, "SearchInvitees")
 		return
 	}
@@ -626,16 +626,16 @@ func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get user id from url
 	userID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetTeamID ] parse: %v", err)
+		fmt.Printf("[ ERROR ] [ GetTeamID ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeamID")
 		return
 	}
 
 	// get team id from db
 	var teamID int
-	err = db.Table("users").Where("id = ?", userID).Select("team_id").Row().Scan(&teamID)
+	err = db.Table("users").Where("id = ?\n", userID).Select("team_id").Row().Scan(&teamID)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetTeamID ] select: %v", err)
+		fmt.Printf("[ ERROR ] [ GetTeamID ] select: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeamID")
 		return
 	}
@@ -650,7 +650,7 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get team id from url
 	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetCaptainID ] parse: %v", err)
+		fmt.Printf("[ ERROR ] [ GetCaptainID ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetCaptainID")
 		return
 	}
@@ -659,7 +659,7 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var captainID int
 	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetCaptainID ] select: %v", err)
+		fmt.Printf("[ ERROR ] [ GetCaptainID ] select: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetCaptainID")
 		return
 	}

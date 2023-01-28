@@ -63,6 +63,8 @@ func RespHandler(w http.ResponseWriter, r *http.Request, resp interface{}, err e
 		w.WriteHeader(http.StatusOK)
 	}
 
+	err = nil
+
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		fmt.Printf("[ CRIT ][ %s ] could not encode response: %v\n", action, err)

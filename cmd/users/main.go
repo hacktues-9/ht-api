@@ -118,27 +118,6 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		db.Create(&models.UserTechnologies{UserID: user.ID, TechnologiesID: tech})
 	}
 
-	var userView models.UserView
-
-	db.Raw("SELECT * FROM userview(?)", user.ID).Scan(&userView)
-
-	if userView.FirstName == "" {
-		fmt.Println("get user: user: find: not found", userView)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("get user: user: find: not found"))
-		return
-	}
-
-	//get Technologies for user
-	var technologiesM []models.Technologies
-	var technologiesView []string
-	db.Table("technologies").Joins("JOIN user_technologies ON user_technologies.technology_id = technologies.id").Where("user_technologies.user_id = ?", user.ID).Scan(&technologies)
-	for _, technology := range technologiesM {
-		technologiesView = append(technologiesView, technology.Technology)
-	}
-
-	userView.Technologies = technologiesView
-
 	accessToken, err := jwt.CreateToken(accessTokenTTL, user.ID, accessTokenPrivateKey, accessTokenPublicKey)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ Register ] access token: create: %v", err)
@@ -178,13 +157,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	http.SetCookie(w, &refreshCookie)
 	http.SetCookie(w, &accessCookie)
 
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(userView)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ Register ] user: encode: %v", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user: encode: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
-		return
-	}
+	models.RespHandler(w, r, models.DefaultPosResponse(strconv.Itoa(int(user.ID))), nil, http.StatusOK, "Register")
 }
 
 func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

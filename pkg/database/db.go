@@ -59,8 +59,8 @@ func Migrate(db *gorm.DB) {
 func PopulateDefault(db *gorm.DB) {
 	var classValues = []string{"А", "Б", "В", "Г"}
 	var roleValues = []string{"MEMBER", "CAPTAIN", "STUDENT", "MENTOR", "ADMIN"}
-	var eatingPreferenceValues = []string{"няма", "вегетарианец", "веган"}
-	var allergiesValues = []string{"яйца", "ядки", "мляко", "глутен"}
+	var eatingPreferenceValues = []string{"VEGETARIAN", "VEGAN", "NONE"}
+	var allergiesValues = []string{"EGGS", "NUTS", "MILK", "GLUTEN"}
 	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL", "XXL"}
 	var technologiesValues = []string{"React",
 		"Angular",

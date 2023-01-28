@@ -1,6 +1,7 @@
 package users
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hacktues-9/API/pkg/jwt"
 	"github.com/hacktues-9/API/pkg/models"
@@ -22,7 +23,7 @@ func ReturnAuthID(r *http.Request) (uint, error) {
 		accessToken = cookie.Value
 	} else {
 		fmt.Println("get user: access token: get:", err)
-		return 0, err
+		return 0, errors.New("no access token provided")
 	}
 
 	sub, err = jwt.ValidateToken(accessToken, accessTokenPublicKey)
@@ -45,7 +46,7 @@ func returnDefaultIDs(db *gorm.DB, user *models.RegisterUser) (uint, uint, uint,
 	db.Where("name = ?", user.Class).First(&class)
 	db.Where("name = ?", user.EatingPreference).First(&eatingPreference)
 	db.Where("name = ?", user.ShirtSize).First(&shirtSize)
-	db.Where("name = ?", "student").First(&role)
+	db.Where("name = ?", "STUDENT").First(&role)
 
 	for _, allergy := range user.Allergies {
 		var tempAllergy models.Allergies
