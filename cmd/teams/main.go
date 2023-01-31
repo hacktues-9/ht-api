@@ -597,14 +597,16 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			IsVerified:   parseTeam.Approved,
 		})
 
-		fmt.Println(parseTeam)
-
 		var members []models.Users //get team members with info table, socials, class,discord, github, role
 		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.ID).Find(&members)
 
 		//add the member to the team
 		for _, member := range members {
-
+			// discord = member.Info.Socials.Discord.Username + "#" + member.Info.Socials.Discord.Discriminator, if member.Info.Socials.Discord.Username == "" { discord = "" }
+			discord := string(member.Info.Socials.Discord.Username + "#" + member.Info.Socials.Discord.Discriminator)
+			if discord == "#" {
+				discord = ""
+			}
 			teams[len(teams)-1].Members = append(teams[len(teams)-1].Members, models.MemberView{
 				ID:             member.ID,
 				Name:           member.FirstName + " " + member.LastName,
@@ -612,8 +614,8 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 				Role:           member.Role.Name,
 				Class:          member.Info.Class.Name,
 				Email:          member.Email,
-				Discord:        member.Info.Socials.Discord.Username + "#" + member.Info.Socials.Discord.Discriminator,
 				Github:         member.Info.Socials.Github.Login,
+				Discord:        discord,
 			})
 		}
 
