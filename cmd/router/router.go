@@ -123,20 +123,20 @@ func Init(DB *gorm.DB) {
 		teams.SearchInvitees(w, r, DB)
 	})
 
+	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
+		teams.GetTeam(w, r, DB)
+	})
+
+	team.HandleFunc("/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/captain
+		teams.GetCaptainID(w, r, DB)
+	})
+
 	team.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/{id}
 		teams.GetTeamID(w, r, DB)
 	})
 
-	team.HandleFunc("/{id}/captain", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/captain
-		teams.GetCaptainID(w, r, DB)
-	})
-
 	user.HandleFunc("/notifications", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/notifications
 		users.GetNotifications(w, r, DB)
-	})
-
-	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
-		teams.GetTeam(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{
