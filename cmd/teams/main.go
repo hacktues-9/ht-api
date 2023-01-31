@@ -701,14 +701,7 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get searchView from db
 	var searchView []models.SearchView
 	// use searchuser function to get searchView from db
-	db.Raw("SELECT * FROM searchuser(?, ?)", query, user.TeamID).Scan(&searchView)
-
-	//remove user from searchView if exists
-	for i, u := range searchView {
-		if user.ID == u.ID {
-			searchView = append(searchView[:i], searchView[i+1:]...)
-		}
-	}
+	db.Raw("SELECT * FROM searchuser(?, ?, ?)", query, user.TeamID, user.ID).Scan(&searchView)
 
 	// return searchView
 	models.RespHandler(w, r, models.DefaultPosResponse(searchView), nil, http.StatusOK, "SearchInvitees")
