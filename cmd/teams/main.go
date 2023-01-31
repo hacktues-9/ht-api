@@ -741,3 +741,29 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// return captain id
 	models.RespHandler(w, r, models.DefaultPosResponse(captainID), nil, http.StatusOK, "GetCaptainID")
 }
+
+func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetTeam ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeam")
+		return
+	}
+
+	// get team from db
+	var team models.GetTeamView
+	db.Table("team").Select("team.name, team.description").Where("team.id = ?\n", teamID).Scan(&team)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture, role.name").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ?\n", teamID).Scan(&team.Members)
+
+	// get team technologies from db
+	var teamTechnologies []string
+	db.Table("team_technologies").Select("technologies.name").Joins("JOIN technologies ON team_technologies.technology_id = technologies.id").Where("team_technologies.team_id = ?\n", teamID).Scan(&teamTechnologies)
+	team.Technologies = teamTechnologies
+
+	// get team projects from db
+	var teamProject models.ProjectTeamView
+	team.Project = teamProject
+
+	// return team
+	models.RespHandler(w, r, models.DefaultPosResponse(team), nil, http.StatusOK, "GetTeam")
+}

@@ -135,6 +135,10 @@ func Init(DB *gorm.DB) {
 		users.GetNotifications(w, r, DB)
 	})
 
+	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
+		teams.GetTeam(w, r, DB)
+	})
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://*.vercel.app", "https://hacktues.bg", "http://localhost:3000/", "http://localhost:8080/", "https://*.vercel.app/"},
 		AllowCredentials: true,

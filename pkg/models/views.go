@@ -60,3 +60,28 @@ type UserView struct {
 	ProfilePicture string   `json:"profilePicture"`
 	Technologies   []string `json:"technologies"`
 }
+
+type MemberTeamView struct {
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+	Role   string `json:"role"`
+}
+
+type ProjectTeamView struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Logo        string `json:"logo"`
+	Links       struct {
+		Github  string `json:"github"`
+		Website string `json:"website"`
+	} `json:"links"`
+}
+
+type GetTeamView struct {
+	Name         string           `json:"name"`
+	Description  string           `json:"description"`
+	Technologies []string         `json:"technologies"`
+	Members      []MemberTeamView `json:"members"`
+	Project      ProjectTeamView  `json:"project"`
+}
