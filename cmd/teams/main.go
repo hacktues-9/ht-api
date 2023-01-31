@@ -597,6 +597,8 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			IsVerified:   parseTeam.Approved,
 		})
 
+		fmt.Println(parseTeam)
+
 		var members []models.Users //get team members with info table, socials, class,discord, github, role
 		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.TID).Find(&members)
 
