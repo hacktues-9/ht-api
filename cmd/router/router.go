@@ -123,12 +123,24 @@ func Init(DB *gorm.DB) {
 		teams.SearchInvitees(w, r, DB)
 	})
 
+	team.HandleFunc("/get/invitees/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/invitees/{id}
+		teams.GetInvitees(w, r, DB)
+	})
+
 	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
 		teams.GetTeam(w, r, DB)
 	})
 
 	team.HandleFunc("/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/captain
 		teams.GetCaptainID(w, r, DB)
+	})
+
+	team.HandleFunc("/kick/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/kick/{id}
+		teams.KickUser(w, r, DB)
+	})
+
+	team.HandleFunc("/update/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/{id}
+		teams.UpdateTeam(w, r, DB)
 	})
 
 	team.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/{id}

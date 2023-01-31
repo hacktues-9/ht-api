@@ -767,3 +767,120 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// return team
 	models.RespHandler(w, r, models.DefaultPosResponse(team), nil, http.StatusOK, "GetTeam")
 }
+
+func GetInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// get invitees from team id
+
+	// get team id from url
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetInvitees ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetInvitees")
+		return
+	}
+
+	// get invitees from db
+	var invitees []models.SearchView //(id bigint, name text, profile_picture text, isinvited boolean)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS profile_picture, true AS isinvited").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("LEFT JOIN invite ON invite.user_id = u.id AND invite.team_id = teamid").Where("users.team_id = ? AND invite.id IS NULL", teamID).Scan(&invitees)
+
+	// return invitees
+	models.RespHandler(w, r, models.DefaultPosResponse(invitees), nil, http.StatusOK, "GetInvitees")
+}
+
+func KickUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ KickUser ] return auth id: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
+		return
+	}
+
+	// get user id from url
+	userID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ KickUser ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
+		return
+	}
+
+	// get team id from user
+	var teamID int
+	err = db.Table("users").Select("team_id").Where("id = ?", userID).Row().Scan(&teamID)
+
+	// check if user is captain
+	var captainID int
+	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ KickUser ] select: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
+		return
+	}
+
+	if float64(sub) != float64(captainID) {
+		fmt.Printf("[ ERROR ] [ KickUser ] user is not captain: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user is not captain: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
+		return
+	}
+
+	// kick user
+	err = db.Table("users").Where("id = ?", userID).Update("team_id", nil).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ KickUser ] update: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
+		return
+	}
+
+	// return success
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "KickUser")
+}
+
+func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] return auth id: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	// get team id from url
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	// check if user is captain
+	var captainID int
+	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] select: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	if float64(sub) != float64(captainID) {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] user is not captain: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user is not captain: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	var team models.GetTeamView
+	err = json.NewDecoder(r.Body).Decode(&team)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] decode: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "decode: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	// update team
+	err = db.Table("teams").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description}).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] update: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	// return success
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
+}
