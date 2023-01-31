@@ -753,7 +753,7 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get team from db
 	var team models.GetTeamView
 	db.Table("team").Select("team.name, team.description").Where("team.id = ?\n", teamID).Scan(&team)
-	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture, role.name").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ?\n", teamID).Scan(&team.Members)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS avatar, role.name AS role").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ?\n", teamID).Scan(&team.Members)
 
 	// get team technologies from db
 	var teamTechnologies []string
