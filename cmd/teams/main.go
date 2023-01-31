@@ -588,7 +588,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, parseTeam := range parseTeams {
 
 		teams = append(teams, models.TeamsView{
-			ID:           parseTeam.TID,
+			ID:           parseTeam.ID,
 			Name:         parseTeam.Name,
 			Logo:         parseTeam.Logo,
 			Members:      []models.MemberView{},
@@ -600,7 +600,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		fmt.Println(parseTeam)
 
 		var members []models.Users //get team members with info table, socials, class,discord, github, role
-		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.TID).Find(&members)
+		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.ID).Find(&members)
 
 		//add the member to the team
 		for _, member := range members {
@@ -618,13 +618,13 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		//get team project
-		if parseTeam.PID != 0 {
+		if parseTeam.ProjectID != 0 {
 			var teamProject models.Project
-			db.Table("projects").Where("id = ?\n", parseTeam.PID).First(&teamProject)
+			db.Table("projects").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
 
 			//get team project technologies
 			var teamProjectTechnologies []models.Technologies
-			db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
+			db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.ProjectID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
 
 			//parse team project technologies
 			var teamProjectTechnologiesParsed []string
@@ -644,7 +644,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		//get team technologies
 		var teamTechnologies []models.Technologies
-		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.TID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
+		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
 
 		//parse team technologies
 		var teamTechnologiesParsed []string
