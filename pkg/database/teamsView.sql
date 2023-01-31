@@ -27,4 +27,4 @@ FROM users
 WHERE team.id IS NOT NULL;
 
 alter table teams
-    owner to postgres;
+    owner to doadmin;

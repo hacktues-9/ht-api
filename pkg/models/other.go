@@ -99,3 +99,9 @@ type ParseChangeUser struct {
 	Technologies   []string `json:"technologies"`
 	LookingForTeam bool     `json:"lookingForTeam"`
 }
+
+type Notification struct {
+	TeamID   uint   `json:"teamId"`
+	TeamName string `json:"teamName"`
+	TeamLogo string `json:"teamLogo"`
+}

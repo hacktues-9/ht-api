@@ -421,66 +421,160 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	models.RespHandler(w, r, teamsWithMostCommonTechnologiesAndMostCommonTechnologiesInProjects, nil, http.StatusOK, "RecommendTeam")
 }
 
-func AcceptUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	//get user
-	user := models.Users{}
-	var parseAccept models.ParseAccept
-
-	err := json.NewDecoder(r.Body).Decode(&parseAccept)
+func AcceptInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	vars := mux.Vars(r)
+	teamID, err := strconv.Atoi(vars["teamId"])
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: decode: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: decode: "+err.Error(), 0), err, http.StatusBadRequest, "AcceptUserToTeam")
+		fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: parse teamID: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept invite: parse teamID: "+err.Error(), 0), err, http.StatusBadRequest, "AcceptInvite")
+		return
+	}
+	userID, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: parse teamID: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept invite: parse teamID: "+err.Error(), 0), err, http.StatusBadRequest, "AcceptInvite")
 		return
 	}
 
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
+		fmt.Printf("[ ERROR ] [ AcceptInvite ] %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "AcceptInvite")
 		return
 	}
 
-	db.Where("id = ?\n", sub).First(&user)
+	//application true => user applied to join a team
+	//application false => user was invited to join a team
 
-	var parseUser models.Users
-
-	db.Where("id = ?\n", parseAccept.UserID).First(&parseUser)
-	if parseUser.ID == 0 {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user not found\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user not found", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
+	// get invite
+	invite := models.Invite{}
+	db.Where("user_id = ? AND team_id = ?\n", userID, teamID).First(&invite)
+	if invite.ID == 0 {
+		fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: invite not found\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept invite: invite not found", 0), err, http.StatusBadRequest, "AcceptInvite")
 		return
 	}
 
-	if parseUser.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user already in team\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept user to team: user already in team", 0), err, http.StatusBadRequest, "AcceptUserToTeam")
-		return
-	}
-
-	//get team
-	team := models.Team{}
-	db.Where("id = ?\n", parseAccept.TeamID).First(&team)
-
-	//if user.ID == parseUser.ID => user is accepting an invitation to join a team
-	//if user.ID == parseUser.ID => user is accepting parseUser to join user's team (user is a team leader)
-	if user.ID == parseUser.ID {
-		//accept user to team
-		db.Model(&parseUser).Update("team_id", team.ID)
-	} else {
-		//accept parseUser to team
-		if user.RoleID == 2 {
-			db.Model(&parseUser).Update("team_id", team.ID)
-		} else {
-			fmt.Printf("[ ERROR ] [ AcceptUserToTeam ] accept user to team: user is not a team leader\n")
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept user to team: user is not a team leader", 0), err, http.StatusUnauthorized, "AcceptUserToTeam")
+	if float64(sub) != float64(userID) {
+		// check if sub is team leader of teamID
+		user := models.Users{}
+		db.Where("id = ?\n", sub).First(&user)
+		if user.RoleID != 2 {
+			fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: user is not a team leader\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept invite: user is not a team leader", 0), err, http.StatusUnauthorized, "AcceptInvite")
 			return
 		}
+
+		if float64(user.TeamID) != float64(teamID) {
+			fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: user is not a team leader of team\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept invite: user is not a team leader of team", 0), err, http.StatusUnauthorized, "AcceptInvite")
+			return
+		}
+
+		if !invite.Application {
+			fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: can not accept user you have invited\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept invite: can not accept user you have invited", 0), err, http.StatusUnauthorized, "AcceptInvite")
+			return
+		}
+
+		//accept user to team
+		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", teamID)
+		//delete invite
+		db.Where("user_id = ? AND team_id = ?\n", userID, teamID).Delete(&models.Invite{})
+		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptInvite")
+		return
+	} else {
+		if invite.Application {
+			fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: can not accept team you have applied to join\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept invite: can not accept team you have applied to join", 0), err, http.StatusUnauthorized, "AcceptInvite")
+			return
+		}
+
+		//accept user to team
+		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", teamID)
+		//delete invite
+		db.Where("user_id = ? AND team_id = ?\n", userID, teamID).Delete(&models.Invite{})
+		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptInvite")
+		return
+	}
+}
+
+func DeclineInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	vars := mux.Vars(r)
+	teamID, err := strconv.Atoi(vars["teamId"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: parse teamID: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "decline invite: parse teamID: "+err.Error(), 0), err, http.StatusBadRequest, "DeclineInvite")
+		return
+	}
+	userID, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: parse teamID: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "decline invite: parse teamID: "+err.Error(), 0), err, http.StatusBadRequest, "DeclineInvite")
+		return
 	}
 
-	//delete invitation
-	db.Where("user_id = ? AND team_id = ?\n", parseUser.ID, team.ID).Delete(&models.Invite{})
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeclineInvite ] %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "DeclineInvite")
+		return
+	}
 
-	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptUserToTeam")
+	//application true => user applied to join a team
+	//application false => user was invited to join a team
+
+	// get invite
+	invite := models.Invite{}
+	db.Where("user_id = ? AND team_id = ?\n", userID, teamID).First(&invite)
+	if invite.ID == 0 {
+		fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: invite not found\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "decline invite: invite not found", 0), err, http.StatusBadRequest, "DeclineInvite")
+		return
+	}
+
+	if float64(sub) != float64(userID) {
+		// check if sub is team leader of teamID
+		user := models.Users{}
+		db.Where("id = ?\n", sub).First(&user)
+		if user.RoleID != 2 {
+			fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: user is not a team leader\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "decline invite: user is not a team leader", 0), err, http.StatusUnauthorized, "DeclineInvite")
+			return
+		}
+
+		if float64(user.TeamID) != float64(teamID) {
+			fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: user is not a team leader of team\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "decline invite: user is not a team leader of team", 0), err, http.StatusUnauthorized, "DeclineInvite")
+			return
+		}
+
+		if !invite.Application {
+			fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: can not decline user you have invited\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "decline invite: can not decline user you have invited", 0), err, http.StatusUnauthorized, "DeclineInvite")
+			return
+		}
+
+		//decline user from team
+		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", nil)
+		//delete invite
+		db.Where("user_id = ? AND team_id = ?\n", userID, teamID).Delete(&models.Invite{})
+		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeclineInvite")
+	} else {
+		if invite.Application {
+			fmt.Printf("[ ERROR ] [ DeclineInvite ] decline invite: can not decline team you have applied to join\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "decline invite: can not decline team you have applied to join", 0), err, http.StatusUnauthorized, "DeclineInvite")
+			return
+		}
+
+		//decline user from team
+		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", nil)
+		//delete invite
+		db.Where("user_id = ? AND team_id = ?\n", userID, teamID).Delete(&models.Invite{})
+		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeclineInvite")
+		return
+	}
+
 }
 
 func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

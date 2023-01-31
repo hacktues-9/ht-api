@@ -14,5 +14,5 @@ BEGIN
 END;
 $$;
 
-alter function searchuser(varchar, bigint) owner to postgres;
+alter function searchuser(varchar, bigint) owner to doadmin;
 

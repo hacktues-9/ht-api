@@ -35,7 +35,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err := json.NewDecoder(r.Body).Decode(&parseUser)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Register ] registerUser: parse: %v", err)
+		fmt.Printf("[ ERROR ] [ Register ] registerUser: parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "registerUser: parse: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -45,7 +45,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	password, err := pass.HashPassword(parseUser.Password)
 
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Register ] password: hash: %v", err)
+		fmt.Printf("[ ERROR ] [ Register ] password: hash: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "password: hash: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -56,7 +56,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Omit("DiscordID", "GithubID").Create(&userSocials); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ Register ] userSocials: create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ Register ] userSocials: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "userSocials: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -72,13 +72,13 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&userInfo); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ Register ] userInfo: create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ Register ] userInfo: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "userInfo: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
 	}
 
 	if result := db.Create(&userSecurity); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ Register ] userSecurity: create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ Register ] userSecurity: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "userSecurity: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -105,7 +105,7 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink)
 
 	if result := db.Omit("TeamID").Create(&user); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ Register ] user: create: %v", result.Error)
+		fmt.Printf("[ ERROR ] [ Register ] user: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -120,14 +120,14 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	accessToken, err := jwt.CreateToken(accessTokenTTL, user.ID, accessTokenPrivateKey, accessTokenPublicKey)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Register ] access token: create: %v", err)
+		fmt.Printf("[ ERROR ] [ Register ] access token: create: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "access token: create: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
 		return
 	}
 
 	refreshToken, err := jwt.CreateToken(refreshTokenTTL, user.ID, refreshTokenPrivateKey, refreshTokenPublicKey)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Register ] refresh token: create: %v", err)
+		fmt.Printf("[ ERROR ] [ Register ] refresh token: create: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "refresh token: create: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
 		return
 	}
@@ -166,14 +166,14 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Login ] loginUser: parse: %v", err)
+		fmt.Printf("[ ERROR ] [ Login ] loginUser: parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "loginUser: parse: "+err.Error(), 0), err, http.StatusInternalServerError, "Login")
 		return
 	}
 
 	if result := db.Where("email = ?", user.Identifier).First(&userDB); result.Error != nil {
 		if result := db.Where("elsys_email = ?", user.Identifier).First(&userDB); result.Error != nil {
-			fmt.Printf("[ ERROR ] [ Login ] user: find: %v", result.Error)
+			fmt.Printf("[ ERROR ] [ Login ] user: find: %v\n", result.Error)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: "+result.Error.Error(), 0), result.Error, http.StatusNotFound, "Login")
 			return
 		}
@@ -189,14 +189,14 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	accessToken, err := jwt.CreateToken(accessTokenTTL, userDB.ID, accessTokenPrivateKey, accessTokenPublicKey)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Login ] access token: create: %v", err)
+		fmt.Printf("[ ERROR ] [ Login ] access token: create: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "access token: create: "+err.Error(), 0), err, http.StatusInternalServerError, "Login")
 		return
 	}
 
 	refreshToken, err := jwt.CreateToken(refreshTokenTTL, userDB.ID, refreshTokenPrivateKey, refreshTokenPublicKey)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ Login ] refresh token: create: %v", err)
+		fmt.Printf("[ ERROR ] [ Login ] refresh token: create: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "refresh token: create: "+err.Error(), 0), err, http.StatusInternalServerError, "Login")
 		return
 	}
@@ -232,7 +232,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 func GetUserID(w http.ResponseWriter, r *http.Request) {
 	sub, err := ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetUserID ] %v", err)
+		fmt.Printf("[ ERROR ] [ GetUserID ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUserID")
 		return
 	}
@@ -245,19 +245,19 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetUser ] id: parse: %v", err)
+		fmt.Printf("[ ERROR ] [ GetUser ] id: parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "id: parse: "+err.Error(), 0), err, http.StatusBadRequest, "GetUser")
 		return
 	}
 	sub, err := ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetUser ] %v", err)
+		fmt.Printf("[ ERROR ] [ GetUser ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUser")
 		return
 	}
 
 	if float64(sub) != float64(id) {
-		fmt.Printf("[ ERROR ] [ GetUser ] access token: validate: wrong id %v %v", sub, id)
+		fmt.Printf("[ ERROR ] [ GetUser ] access token: validate: wrong id %v %v\n", sub, id)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "access token: validate: wrong id", 0), err, http.StatusUnauthorized, "GetUser")
 		return
 	}
@@ -267,7 +267,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Raw("SELECT * FROM userview(?)", id).Scan(&user)
 
 	if user.FirstName == "" {
-		fmt.Printf("[ ERROR ] [ GetUser ] user: find: not found %v", user)
+		fmt.Printf("[ ERROR ] [ GetUser ] user: find: not found %v\n", user)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), err, http.StatusNotFound, "GetUser")
 		return
 	}
@@ -285,7 +285,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetUser ] json encode: %v", err)
+		fmt.Printf("[ ERROR ] [ GetUser ] json encode: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "json encode: "+err.Error(), 0), err, http.StatusInternalServerError, "GetUser")
 		return
 	}
@@ -324,20 +324,20 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	err := json.NewDecoder(r.Body).Decode(&parseChangeUser)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ UpdateUser ] json decode: %v", err)
+		fmt.Printf("[ ERROR ] [ UpdateUser ] json decode: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "json decode: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateUser")
 		return
 	}
 
 	sub, err := ReturnAuthID(r)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ UpdateUser ] %v", err)
+		fmt.Printf("[ ERROR ] [ UpdateUser ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "UpdateUser")
 		return
 	}
 
 	if float64(sub) != float64(parseChangeUser.ID) {
-		fmt.Printf("[ ERROR ] [ UpdateUser ] access token: validate: wrong id %v %v", sub, parseChangeUser.ID)
+		fmt.Printf("[ ERROR ] [ UpdateUser ] access token: validate: wrong id %v %v\n", sub, parseChangeUser.ID)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "access token: validate: wrong id"+strconv.Itoa(int(sub))+" "+strconv.Itoa(int(parseChangeUser.ID)), 0), err, http.StatusUnauthorized, "UpdateUser")
 	}
 

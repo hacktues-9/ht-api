@@ -62,3 +62,17 @@ func returnDefaultIDs(db *gorm.DB, user *models.RegisterUser) (uint, uint, uint,
 
 	return class.ID, eatingPreference.ID, shirtSize.ID, role.ID, allergies, technologies
 }
+
+func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	userId, err := ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetNotifications ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetNotifications")
+		return
+	}
+
+	var notifications []models.Notification
+	db.Table("invite").Where("user_id = ?", userId).Joins("JOIN teams ON teams.id = invite.team_id").Joins("JOIN users ON users.id = invite.user_id").Select("team.id, teams.name, teams.logo").Scan(&notifications)
+
+	models.RespHandler(w, r, models.DefaultPosResponse(notifications), nil, http.StatusOK, "GetNotifications")
+}

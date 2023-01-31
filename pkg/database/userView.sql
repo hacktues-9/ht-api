@@ -18,5 +18,5 @@ BEGIN
 END;
 $$;
 
-alter function userview(bigint) owner to postgres;
+alter function userview(bigint) owner to doadmin;
 

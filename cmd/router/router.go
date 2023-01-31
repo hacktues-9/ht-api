@@ -107,8 +107,12 @@ func Init(DB *gorm.DB) {
 		teams.ApplyToTeam(w, r, DB)
 	})
 
-	team.HandleFunc("/accept", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept
-		teams.AcceptUserToTeam(w, r, DB)
+	team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
+		teams.AcceptInvite(w, r, DB)
+	})
+
+	team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
+		teams.DeclineInvite(w, r, DB)
 	})
 
 	team.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get
@@ -125,6 +129,10 @@ func Init(DB *gorm.DB) {
 
 	team.HandleFunc("/{id}/captain", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/captain
 		teams.GetCaptainID(w, r, DB)
+	})
+
+	user.HandleFunc("/notifications", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/notifications
+		users.GetNotifications(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{
