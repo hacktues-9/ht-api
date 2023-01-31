@@ -77,21 +77,11 @@ type ParseAccept struct {
 }
 
 type ParseTeamView struct {
-	ID             uint   `json:"tid"`
-	Name           string `json:"name"`
-	Logo           string `json:"logo"`
-	PID            uint   `json:"pid"`
-	UID            uint   `json:"uid"`
-	FirstName      string `json:"first_name"`
-	LastName       string `json:"last_name"`
-	Email          string `json:"email"`
-	ProfilePicture string `json:"profile_picture"`
-	Role           string `json:"role"`
-	Grade          string `json:"grade"`
-	Class          string `json:"class"`
-	Discord        string `json:"discord"`
-	Github         string `json:"github"`
-	Approved       bool   `json:"approved"`
+	ID       uint   `json:"tid"`
+	Name     string `json:"name"`
+	Logo     string `json:"logo"`
+	PID      uint   `json:"pid"`
+	Approved bool   `json:"approved"`
 }
 
 type ParseChangeUser struct {

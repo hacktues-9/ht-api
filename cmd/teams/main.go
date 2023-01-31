@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hacktues-9/API/cmd/users"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"net/http"
 	"os"
 	"strconv"
@@ -584,91 +585,73 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// parse teams to teams
 	var teams []models.TeamsView
 
-	//every row in parseTeams is a member of a team
 	for _, parseTeam := range parseTeams {
-		//check if the team is already in teams
-		teamAlreadyInTeams := false
-		for i, team := range teams {
-			if team.ID == parseTeam.ID {
-				//if the team is already in teams, add the member to the team
-				teamAlreadyInTeams = true
 
-				var member models.MemberView
-				member.ID = parseTeam.UID
-				member.Name = parseTeam.FirstName + " " + parseTeam.LastName
-				member.ProfilePicture = parseTeam.ProfilePicture
-				member.Role = parseTeam.Role
-				member.Class = parseTeam.Grade + parseTeam.Class
-				member.Email = parseTeam.Email
-				member.Discord = parseTeam.Discord
-				member.Github = parseTeam.Github
-				teams[i].Members = append(teams[i].Members, member)
-			}
-		}
+		teams = append(teams, models.TeamsView{
+			ID:           parseTeam.ID,
+			Name:         parseTeam.Name,
+			Logo:         parseTeam.Logo,
+			Members:      []models.MemberView{},
+			Project:      models.ProjectView{},
+			Technologies: []string{},
+			IsVerified:   parseTeam.Approved,
+		})
 
-		//if the team is not in teams, add it
-		if !teamAlreadyInTeams {
-			teams = append(teams, models.TeamsView{
-				ID:           parseTeam.ID,
-				Name:         parseTeam.Name,
-				Logo:         parseTeam.Logo,
-				Members:      []models.MemberView{},
-				Project:      models.ProjectView{},
-				Technologies: []string{},
-				IsVerified:   parseTeam.Approved,
+		var members []models.Users //get team members with info table, socials, class,discord, github, role
+		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.ID).Find(&members)
+
+		//add the member to the team
+		for _, member := range members {
+
+			teams[len(teams)-1].Members = append(teams[len(teams)-1].Members, models.MemberView{
+				ID:             member.ID,
+				Name:           member.FirstName + " " + member.LastName,
+				ProfilePicture: member.Info.Socials.ProfilePicture,
+				Role:           member.Role.Name,
+				Class:          member.Info.Class.Name,
+				Email:          member.Email,
+				Discord:        member.Info.Socials.Discord.Username + "#" + member.Info.Socials.Discord.Discriminator,
+				Github:         member.Info.Socials.Github.Login,
 			})
-
-			//add the member to the team
-			var member models.MemberView
-			member.ID = parseTeam.UID
-			member.Name = parseTeam.FirstName + " " + parseTeam.LastName
-			member.ProfilePicture = parseTeam.ProfilePicture
-			member.Role = parseTeam.Role
-			member.Class = parseTeam.Grade + parseTeam.Class
-			member.Email = parseTeam.Email
-			member.Discord = parseTeam.Discord
-			member.Github = parseTeam.Github
-
-			teams[len(teams)-1].Members = append(teams[len(teams)-1].Members, member)
-
-			//get team project
-			if parseTeam.PID != 0 {
-				var teamProject models.Project
-				db.Table("projects").Where("id = ?\n", parseTeam.PID).First(&teamProject)
-
-				//get team project technologies
-				var teamProjectTechnologies []models.Technologies
-				db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
-
-				//parse team project technologies
-				var teamProjectTechnologiesParsed []string
-				for _, teamProjectTechnology := range teamProjectTechnologies {
-					teamProjectTechnologiesParsed = append(teamProjectTechnologiesParsed, teamProjectTechnology.Technology)
-				}
-
-				//add team project to team
-				teams[len(teams)-1].Project = models.ProjectView{
-					ID:           teamProject.ID,
-					Name:         teamProject.Name,
-					Description:  teamProject.Description,
-					Technologies: teamProjectTechnologiesParsed,
-				}
-
-			}
-
-			//get team technologies
-			var teamTechnologies []models.Technologies
-			db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
-
-			//parse team technologies
-			var teamTechnologiesParsed []string
-			for _, teamTechnology := range teamTechnologies {
-				teamTechnologiesParsed = append(teamTechnologiesParsed, teamTechnology.Technology)
-			}
-
-			//add team technologies to team
-			teams[len(teams)-1].Technologies = teamTechnologiesParsed
 		}
+
+		//get team project
+		if parseTeam.PID != 0 {
+			var teamProject models.Project
+			db.Table("projects").Where("id = ?\n", parseTeam.PID).First(&teamProject)
+
+			//get team project technologies
+			var teamProjectTechnologies []models.Technologies
+			db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.PID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
+
+			//parse team project technologies
+			var teamProjectTechnologiesParsed []string
+			for _, teamProjectTechnology := range teamProjectTechnologies {
+				teamProjectTechnologiesParsed = append(teamProjectTechnologiesParsed, teamProjectTechnology.Technology)
+			}
+
+			//add team project to team
+			teams[len(teams)-1].Project = models.ProjectView{
+				ID:           teamProject.ID,
+				Name:         teamProject.Name,
+				Description:  teamProject.Description,
+				Technologies: teamProjectTechnologiesParsed,
+			}
+
+		}
+
+		//get team technologies
+		var teamTechnologies []models.Technologies
+		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
+
+		//parse team technologies
+		var teamTechnologiesParsed []string
+		for _, teamTechnology := range teamTechnologies {
+			teamTechnologiesParsed = append(teamTechnologiesParsed, teamTechnology.Technology)
+		}
+
+		//add team technologies to team
+		teams[len(teams)-1].Technologies = teamTechnologiesParsed
 	}
 
 	models.RespHandler(w, r, models.DefaultPosResponse(teams), nil, http.StatusOK, "GetTeams")
