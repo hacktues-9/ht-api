@@ -588,7 +588,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, parseTeam := range parseTeams {
 
 		teams = append(teams, models.TeamsView{
-			ID:           parseTeam.ID,
+			ID:           parseTeam.TID,
 			Name:         parseTeam.Name,
 			Logo:         parseTeam.Logo,
 			Members:      []models.MemberView{},
@@ -598,7 +598,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		})
 
 		var members []models.Users //get team members with info table, socials, class,discord, github, role
-		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.ID).Find(&members)
+		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.TID).Find(&members)
 
 		//add the member to the team
 		for _, member := range members {
@@ -642,7 +642,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		//get team technologies
 		var teamTechnologies []models.Technologies
-		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
+		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.TID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
 
 		//parse team technologies
 		var teamTechnologiesParsed []string

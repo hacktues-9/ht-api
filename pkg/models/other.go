@@ -77,7 +77,7 @@ type ParseAccept struct {
 }
 
 type ParseTeamView struct {
-	ID       uint   `json:"tid"`
+	TID      uint   `json:"tid"`
 	Name     string `json:"name"`
 	Logo     string `json:"logo"`
 	PID      uint   `json:"pid"`
