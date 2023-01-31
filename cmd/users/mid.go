@@ -71,8 +71,11 @@ func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	//var notifications []models.Notification
+	//db.Table("invite").Where("user_id = ?", userId).Joins("JOIN team ON team.id = invite.team_id").Select("team.id, team.name, team.logo").Scan(&notifications)
+
 	var notifications []models.Notification
-	db.Table("invite").Where("user_id = ?", userId).Joins("JOIN team ON team.id = invite.team_id").Select("team.id, team.name, team.logo").Scan(&notifications)
+	db.Raw("SELECT * FROM inviteview(?)", userId).Scan(&notifications)
 
 	models.RespHandler(w, r, models.DefaultPosResponse(notifications), nil, http.StatusOK, "GetNotifications")
 }
