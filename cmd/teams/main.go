@@ -689,7 +689,7 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "SearchInvitees")
 	}
 
-	db.Table("searchView").Where("id = ?\n", sub).First(&user)
+	db.Table("users").Where("id = ?\n", sub).First(&user)
 
 	//check if user is not captain
 	if user.RoleID == 2 {
