@@ -43,6 +43,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	team = models.Team{
 		Name:        parseTeam.Name,
 		Description: parseTeam.Description,
+		Logo:        "https://api.hacktues.com/api/image/" + parseTeam.Name,
 	}
 
 	if result := db.Omit("ProjectID", "InvitesID").Create(&team); result.Error != nil {
