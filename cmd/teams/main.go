@@ -641,17 +641,11 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		//get team technologies
-		var teamTechnologies []models.Technologies
-		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technology_id = technologies.id").Find(&teamTechnologies)
-
-		//parse team technologies
-		var teamTechnologiesParsed []string
-		for _, teamTechnology := range teamTechnologies {
-			teamTechnologiesParsed = append(teamTechnologiesParsed, teamTechnology.Technology)
-		}
+		var teamTechnologies []string
+		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technologies_id = technologies.id").Pluck("technologies.technology", &teamTechnologies)
 
 		//add team technologies to team
-		teams[len(teams)-1].Technologies = teamTechnologiesParsed
+		teams[len(teams)-1].Technologies = teamTechnologies
 	}
 
 	models.RespHandler(w, r, models.DefaultPosResponse(teams), nil, http.StatusOK, "GetTeams")
