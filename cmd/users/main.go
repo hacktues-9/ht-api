@@ -51,8 +51,9 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	userSocials = models.Socials{
-		LinkedInLink:  "",
-		InstagramLink: "",
+		LinkedInLink:   "",
+		InstagramLink:  "",
+		ProfilePicture: "https://api.hacktues.bg/api/image/" + parseUser.FirstName + " " + parseUser.LastName,
 	}
 
 	if result := db.Omit("DiscordID", "GithubID").Create(&userSocials); result.Error != nil {
