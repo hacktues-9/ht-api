@@ -159,6 +159,10 @@ func Init(DB *gorm.DB) {
 		users.GetNotifications(w, r, DB)
 	})
 
+	r.HandleFunc("/image/{name}", func(w http.ResponseWriter, r *http.Request) { // route - /api/image/{name}
+		users.GenerateImage(w, r, DB)
+	})
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://*.vercel.app", "https://hacktues.bg", "https://*.hacktues.bg", "http://localhost:3000/", "http://localhost:8080/", "https://*.vercel.app/", "https://*.hacktues.bg/", "https://hacktues.bg/"},
 		AllowCredentials: true,

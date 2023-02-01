@@ -3,11 +3,16 @@ package users
 import (
 	"errors"
 	"fmt"
+	"github.com/disintegration/letteravatar"
+	"github.com/gorilla/mux"
 	"github.com/hacktues-9/API/pkg/jwt"
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
+	"image/png"
 	"net/http"
+	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 func ReturnAuthID(r *http.Request) (uint, error) {
@@ -78,4 +83,45 @@ func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Raw("SELECT * FROM inviteview(?)", userId).Scan(&notifications)
 
 	models.RespHandler(w, r, models.DefaultPosResponse(notifications), nil, http.StatusOK, "GetNotifications")
+}
+
+func GenerateImage(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	name := mux.Vars(r)["name"]
+
+	firstLetter, _ := utf8.DecodeRuneInString(name)
+
+	img, err := letteravatar.Draw(75, firstLetter, nil)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+		return
+	}
+
+	file, err := os.Create("images/" + name + ".png")
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+		return
+	}
+
+	defer file.Close()
+
+	err = png.Encode(file, img)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+		return
+	}
+
+	//return image
+	w.Header().Set("Content-Type", "image/png")
+	err = png.Encode(w, img)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	
 }
