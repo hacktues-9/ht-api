@@ -47,7 +47,7 @@ type UserView struct {
 	ElsysEmail string `json:"elsysEmail"`
 	Mobile     string `json:"mobile"`
 
-	SClass    string `json:"sclass"`
+	Sclass    string `json:"sclass"`
 	ShirtSize string `json:"shirtSize"`
 
 	EmailVerified      bool `json:"emailVerified"`
