@@ -2,20 +2,16 @@ package teams
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hacktues-9/API/cmd/users"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/hacktues-9/API/pkg/models"
 )
-
-var accessTokenPublicKey = os.Getenv("ACCESS_TOKEN_PUBLIC_KEY")
 
 func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	team := models.Team{}
@@ -677,13 +673,6 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	db.Table("users").Where("id = ?\n", sub).First(&user)
-
-	//check if user is not captain
-	if user.RoleID == 2 {
-		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is not captain\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user is not captain", 0), errors.New("user is not captain"), http.StatusUnauthorized, "SearchInvitees")
-		return
-	}
 
 	// get searchView from db
 	var searchView []models.SearchView
