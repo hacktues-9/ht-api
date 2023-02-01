@@ -670,10 +670,16 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "SearchInvitees")
+		return
 	}
 
 	db.Table("users").Where("id = ?\n", sub).First(&user)
 
+	if user.TeamID != 0 {
+		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is already in a team\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user is already in a team", 0), nil, http.StatusUnauthorized, "SearchInvitees")
+		return
+	}
 	// get searchView from db
 	var searchView []models.SearchView
 	// use searchuser function to get searchView from db
@@ -863,13 +869,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// update team
-	err = db.Table("teams").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description}).Error
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ UpdateTeam ] update: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
-		return
-	}
-
+	db.Table("teams").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description})
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
 }
