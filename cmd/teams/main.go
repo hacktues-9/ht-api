@@ -663,9 +663,6 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get query search=...
 	query := r.URL.Query().Get("search")
 
-	//get user from cookie or bearer token
-	var user models.Users
-
 	sub, err := users.ReturnAuthID(r)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v\n", err)
@@ -673,17 +670,10 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	db.Table("users").Where("id = ?\n", sub).First(&user)
-
-	if user.TeamID != 0 {
-		fmt.Printf("[ ERROR ] [ SearchInvitees ] user is already in a team\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "user is already in a team", 0), nil, http.StatusUnauthorized, "SearchInvitees")
-		return
-	}
 	// get searchView from db
 	var searchView []models.SearchView
 	// use searchuser function to get searchView from db
-	db.Raw("SELECT * FROM searchuser(?, ?, ?)", query, user.TeamID, user.ID).Scan(&searchView)
+	db.Raw("SELECT * FROM searchuser(?, ?, ?)", query, user.TeamID, sub).Scan(&searchView)
 
 	// return searchView
 	models.RespHandler(w, r, models.DefaultPosResponse(searchView), nil, http.StatusOK, "SearchInvitees")
