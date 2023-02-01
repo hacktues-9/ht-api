@@ -875,6 +875,30 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
 		return
 	}
+
+	// update technologies
+	err = db.Table("team_technologies").Where("team_id = ?", teamID).Delete(models.TeamTechnologies{}).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] delete: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
+
+	for _, tech := range team.Technologies {
+		//get technology id
+		var techID int
+		err = db.Table("technologies").Select("id").Where("name = ?", tech).Row().Scan(&techID)
+		teamTech := models.TeamTechnologies{
+			TeamID:         uint(teamID),
+			TechnologiesID: uint(techID),
+		}
+		err = db.Table("team_technologies").Create(&teamTech).Error
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ UpdateTeam ] create: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "create: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+			return
+		}
+	}
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
 }
