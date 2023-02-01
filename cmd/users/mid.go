@@ -9,6 +9,7 @@ import (
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
 	"image/png"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -88,40 +89,64 @@ func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 func GenerateImage(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	name := mux.Vars(r)["name"]
 
-	firstLetter, _ := utf8.DecodeRuneInString(name)
+	if _, err := os.Stat("images/" + name + ".png"); err == nil {
+		// file exists
+		file, err := os.Open("images/" + name + ".png")
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
 
-	img, err := letteravatar.Draw(75, firstLetter, nil)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
-		return
+		defer file.Close()
+
+		//return image
+		w.Header().Set("Content-Type", "image/png")
+		_, err = io.Copy(w, file)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+	} else {
+		// file does not exist
+		firstLetter, _ := utf8.DecodeRuneInString(name)
+
+		img, err := letteravatar.Draw(75, firstLetter, nil)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+
+		file, err := os.Create("images/" + name + ".png")
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+
+		defer file.Close()
+
+		err = png.Encode(file, img)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+
+		//return image
+		w.Header().Set("Content-Type", "image/png")
+		err = png.Encode(w, img)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
-
-	file, err := os.Create("images/" + name + ".png")
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
-		return
-	}
-
-	defer file.Close()
-
-	err = png.Encode(file, img)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
-		return
-	}
-
-	//return image
-	w.Header().Set("Content-Type", "image/png")
-	err = png.Encode(w, img)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	
 }
