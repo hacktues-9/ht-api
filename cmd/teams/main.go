@@ -752,7 +752,7 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get team technologies from db
 	var teamTechnologies []string
-	db.Table("team_technologies").Select("technologies.technology").Joins("JOIN technologies ON team_technologies.technology_id = technologies.id").Where("team_technologies.team_id = ?\n", teamID).Scan(&teamTechnologies)
+	db.Table("team_technologies").Select("technologies.technology").Joins("JOIN technologies ON team_technologies.technologies_id = technologies.id").Where("team_technologies.team_id = ?\n", teamID).Scan(&teamTechnologies)
 	team.Technologies = teamTechnologies
 
 	// get team projects from db
