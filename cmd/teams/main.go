@@ -608,7 +608,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 				Name:           member.FirstName + " " + member.LastName,
 				ProfilePicture: member.Info.Socials.ProfilePicture,
 				Role:           member.Role.Name,
-				Class:          member.Info.Class.Name,
+				Class:          strconv.Itoa(member.Info.Grade) + " " + member.Info.Class.Name,
 				Email:          member.Email,
 				Github:         member.Info.Socials.Github.Login,
 				Discord:        discord,
@@ -882,4 +882,115 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
+}
+
+func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ LeaveTeam ] return auth id: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+		return
+	}
+
+	// get team id from url
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ LeaveTeam ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+		return
+	}
+
+	// check if user is captain
+	var captainID int
+	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ LeaveTeam ] select: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+		return
+	}
+
+	if float64(sub) == float64(captainID) {
+		// delete team
+		//clear all members from team
+		err = db.Table("users").Where("team_id = ?", teamID).Update("team_id", nil).Error
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ LeaveTeam ] update: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+			return
+		}
+
+		//delete team
+		err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ LeaveTeam ] delete: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+			return
+		}
+
+		// return success
+		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "LeaveTeam")
+		return
+	}
+
+	// leave team
+	err = db.Table("users").Where("id = ?", sub).Update("team_id", nil).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ LeaveTeam ] update: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+		return
+	}
+
+	// return success
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "LeaveTeam")
+}
+
+func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] return auth id: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	// get team id from url
+	teamID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	// check if user is captain
+	var captainID int
+	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] select: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	if float64(sub) != float64(captainID) {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] user is not captain: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user is not captain: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	//clear all users from team
+	err = db.Table("users").Where("team_id = ?", teamID).Update("team_id", nil).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] update: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	// delete team
+	err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ DeleteTeam ] delete: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
+		return
+	}
+
+	// return success
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeleteTeam")
 }

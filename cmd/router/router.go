@@ -139,6 +139,14 @@ func Init(DB *gorm.DB) {
 		teams.KickUser(w, r, DB)
 	})
 
+	team.HandleFunc("/leave/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/leave/{id}
+		teams.LeaveTeam(w, r, DB)
+	})
+
+	team.HandleFunc("/delete/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/delete/{id}
+		teams.DeleteTeam(w, r, DB)
+	})
+
 	team.HandleFunc("/update/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/{id}
 		teams.UpdateTeam(w, r, DB)
 	})
@@ -152,7 +160,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://*.vercel.app", "https://hacktues.bg", "http://localhost:3000/", "http://localhost:8080/", "https://*.vercel.app/"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://hacktues.com", "http://localhost:8080", "https://*.vercel.app", "https://hacktues.bg", "https://*.hacktues.bg", "http://localhost:3000/", "http://localhost:8080/", "https://*.vercel.app/", "https://*.hacktues.bg/", "https://hacktues.bg/"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
