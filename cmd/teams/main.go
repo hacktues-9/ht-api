@@ -869,7 +869,12 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// update team
-	db.Table("teams").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description})
+	err = db.Table("teams").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description}).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] update: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
 }
