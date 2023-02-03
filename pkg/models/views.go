@@ -81,6 +81,7 @@ type ProjectTeamView struct {
 type GetTeamView struct {
 	Name         string           `json:"name"`
 	Description  string           `json:"description"`
+	Logo         string           `json:"logo"`
 	Technologies []string         `json:"technologies"`
 	Members      []MemberTeamView `json:"members"`
 	Project      ProjectTeamView  `json:"project"`
