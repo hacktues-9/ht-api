@@ -150,3 +150,29 @@ func GenerateImage(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func CheckEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	email := mux.Vars(r)["email"]
+
+	var user models.Users
+	db.Where("email = ?", email).First(&user)
+
+	if user.ID == 0 {
+		models.RespHandler(w, r, models.DefaultPosResponse("email is available"), nil, http.StatusOK, "CheckEmail")
+	} else {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is already in use", 0), nil, http.StatusUnauthorized, "CheckEmail")
+	}
+}
+
+func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	email := mux.Vars(r)["email"]
+
+	var user models.Users
+	db.Where("email = ?", email).First(&user)
+
+	if user.ID == 0 {
+		models.RespHandler(w, r, models.DefaultPosResponse("email is available"), nil, http.StatusOK, "CheckElsysEmail")
+	} else {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is already in use", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+	}
+}

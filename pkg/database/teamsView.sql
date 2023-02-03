@@ -6,7 +6,8 @@ SELECT team.id,
        team.logo,
        team.project_id,
        team.approved
-FROM team;
+FROM team
+ORDER BY team.created_at DESC;
 
 alter table teams
     owner to doadmin;

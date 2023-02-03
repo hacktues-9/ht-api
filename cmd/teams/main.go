@@ -858,7 +858,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// update team
-	err = db.Table("team").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description}).Error
+	err = db.Table("team").Where("id = ?", teamID).Updates(map[string]interface{}{"name": team.Name, "description": team.Description, "logo": "https://api.hacktues.bg/api/image/" + team.Name}).Error
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ UpdateTeam ] update: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
@@ -871,10 +871,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	for _, tech := range team.Technologies {
 		//get technology id
 		var techID int
-		err := db.Table("technologies").Select("id").Where("name = ?", tech).Row().Scan(&techID)
-		if err != nil {
-			return
-		}
+		db.Table("technologies").Select("id").Where("technology = ?", tech).Row().Scan(&techID)
 		teamTech := models.TeamTechnologies{
 			TeamID:         uint(teamID),
 			TechnologiesID: uint(techID),

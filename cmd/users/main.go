@@ -343,17 +343,23 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	//to change technologies we need to delete all technologies for user and add new ones
-	if len(parseChangeUser.Technologies) > 0 {
-		db.Exec("DELETE FROM user_technologies WHERE user_id = ?", sub)
-		for _, technology := range parseChangeUser.Technologies {
-			var technologyID int
-			db.Table("technologies").Where("technology = ?", technology).Select("id").Row().Scan(&technologyID)
-			db.Create(&models.UserTechnologies{UserID: sub, TechnologiesID: uint(technologyID)})
-		}
+
+	db.Exec("DELETE FROM user_technologies WHERE user_id = ?", sub)
+	for _, technology := range parseChangeUser.Technologies {
+		var technologyID int
+		db.Table("technologies").Where("technology = ?", technology).Select("id").Row().Scan(&technologyID)
+		db.Create(&models.UserTechnologies{UserID: sub, TechnologiesID: uint(technologyID)})
 	}
 
 	//change LookingForTeam
 	db.Model(&models.Users{}).Where("id = ?", sub).Update("looking_for_team", parseChangeUser.LookingForTeam)
+
+	//get first name and last name
+	var firstName, lastName string
+	db.Table("users").Where("id = ?", sub).Select("first_name, last_name").Row().Scan(&firstName, &lastName)
+
+	//update profile_picture
+	db.Model(&models.Users{}).Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Where("users.id = ?", sub).Update("socials.profile_picture", "https://api.hacktues.bg/api/image/"+firstName+"%20"+lastName)
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateUser")
 }

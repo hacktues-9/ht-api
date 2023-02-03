@@ -231,7 +231,7 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Create(&github)
 	db.Model(&models.Socials{}).Where("ID = ?", id).Update("GithubID", github.ID)
 
-	http.Redirect(w, r, "http://localhost:3000/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusMovedPermanently)
 }
 
 func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -357,7 +357,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	http.SetCookie(w, &accessCookie)
 	http.SetCookie(w, &refreshCookie)
-	http.Redirect(w, r, "http://localhost:3000/", http.StatusFound)
+	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusFound)
 }
 
 func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -494,7 +494,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	http.SetCookie(w, &accessCookie)
 	http.SetCookie(w, &refreshCookie)
 
-	http.Redirect(w, r, "http://localhost:3000/", http.StatusFound)
+	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusFound)
 
 }
 
