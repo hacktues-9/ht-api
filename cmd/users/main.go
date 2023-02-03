@@ -375,20 +375,19 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func ForgotPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	email := mux.Vars(r)["email"]
-
+	mail := mux.Vars(r)["email"]
 
 	var user models.Users
-	db.Table("users").Where("email = ?", email).Scan(&user)
+	db.Table("users").Where("email = ?", mail).Scan(&user)
 
 	if user.FirstName == "" {
 		fmt.Printf("[ ERROR ] [ ForgotPassword ] user: find: not found %v\n", user)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), err, http.StatusNotFound, "ForgotPassword")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), errors.New(" "), http.StatusNotFound, "ForgotPassword")
 		return
 	}
 
 	//generate new password and hash it
-	newPassword := 
+	newPassword := "123456"
 
 	//hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10)
@@ -399,15 +398,15 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	//update password
-	db.Model(&models.Users{}).Where("email = ?", email).Update("password", hashedPassword)
+	db.Model(&models.Users{}).Where("email = ?", mail).Update("password", hashedPassword)
 
 	//send email
-	err = sendEmail(email, newPassword)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ ForgotPassword ] send email: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "send email: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
-		return
-	}
+	//err = sendEmail(email, newPassword)
+	//if err != nil {
+	//	fmt.Printf("[ ERROR ] [ ForgotPassword ] send email: %v\n", err)
+	//	models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "send email: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
+	//	return
+	//}
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ForgotPassword")
 }
