@@ -89,6 +89,16 @@ func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 func GenerateImage(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	name := mux.Vars(r)["name"]
 
+	//if images/ folder does not exist, create it
+	if _, err := os.Stat("images"); os.IsNotExist(err) {
+		err := os.Mkdir("images", 0755)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ GenerateImage ] %v", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, err.Error(), 0), err, http.StatusInternalServerError, "GenerateImage")
+			return
+		}
+	}
+
 	if _, err := os.Stat("images/" + name + ".png"); err == nil {
 		// file exists
 		file, err := os.Open("images/" + name + ".png")
