@@ -136,8 +136,8 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	var socials models.Socials
 	db.Table("socials").Where("id = ?", socialsId).First(&socials)
-	socials.DiscordID = discord.ID
-	db.Save(&socials)
+
+	db.Model(&socials).Update("discord_id", discord.ID)
 
 	http.Redirect(w, r, "https://discord.gg/q6GGxvjjGb", http.StatusMovedPermanently)
 }
@@ -249,8 +249,7 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var socials models.Socials
 	db.Table("socials").Where("id = ?", socialsId).First(&socials)
 
-	socials.GithubID = github.ID
-	db.Save(&socials)
+	db.Model(&socials).Update("github_id", github.ID)
 
 	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusMovedPermanently)
 }
