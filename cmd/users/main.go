@@ -73,12 +73,17 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	if result := db.Create(&userInfo); result.Error != nil {
+		//delete prev Tables
+		db.Delete(&userSocials)
 		fmt.Printf("[ ERROR ] [ Register ] userInfo: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "userInfo: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
 	}
 
 	if result := db.Create(&userSecurity); result.Error != nil {
+		//delete prev Tables
+		db.Delete(&userSocials)
+		db.Delete(&userInfo)
 		fmt.Printf("[ ERROR ] [ Register ] userSecurity: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "userSecurity: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return
@@ -106,6 +111,10 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink)
 
 	if result := db.Omit("TeamID").Create(&user); result.Error != nil {
+		//delete prev Tables
+		db.Delete(&userSocials)
+		db.Delete(&userInfo)
+		db.Delete(&userSecurity)
 		fmt.Printf("[ ERROR ] [ Register ] user: create: %v\n", result.Error)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user: create: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "Register")
 		return

@@ -87,11 +87,11 @@ func Init(DB *gorm.DB) {
 		users.GetUserID(w, r)
 	})
 
-	auth.HandleFunc("/check/email/{email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/check/email
+	auth.HandleFunc("/check/email/{email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/check/email/{email}
 		users.CheckEmail(w, r, DB)
 	})
 
-	auth.HandleFunc("/check/elsys_email/{email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/check/username
+	auth.HandleFunc("/check/elsys_email/{email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/check/elsys_email/{email}
 		users.CheckElsysEmail(w, r, DB)
 	})
 

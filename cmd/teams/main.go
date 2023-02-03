@@ -595,7 +595,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		})
 
 		var members []models.Users //get team members with info table, socials, class,discord, github, role
-		db.Preload(clause.Associations).Preload("Info.Socials").Preload("Info.Class").Preload("Socials.Discord").Preload("Socials.Github").Preload("Role").Table("users").Where("team_id = ?\n", parseTeam.ID).Find(&members)
+		db.Preload("Info.Socials.Discord").Preload("Info.Class").Preload("Info.Socials.Github").Table("users").Preload(clause.Associations).Where("team_id = ?\n", parseTeam.ID).Find(&members)
 
 		//add the member to the team
 		for _, member := range members {
