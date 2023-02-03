@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 	"strconv"
@@ -371,4 +372,42 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Model(&models.Users{}).Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Where("users.id = ?", sub).Update("socials.profile_picture", "https://api.hacktues.bg/api/image/"+firstName+"%20"+lastName)
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateUser")
+}
+
+func ForgotPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	email := mux.Vars(r)["email"]
+
+
+	var user models.Users
+	db.Table("users").Where("email = ?", email).Scan(&user)
+
+	if user.FirstName == "" {
+		fmt.Printf("[ ERROR ] [ ForgotPassword ] user: find: not found %v\n", user)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), err, http.StatusNotFound, "ForgotPassword")
+		return
+	}
+
+	//generate new password and hash it
+	newPassword := 
+
+	//hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ForgotPassword ] bcrypt: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "bcrypt: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
+		return
+	}
+
+	//update password
+	db.Model(&models.Users{}).Where("email = ?", email).Update("password", hashedPassword)
+
+	//send email
+	err = sendEmail(email, newPassword)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ForgotPassword ] send email: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "send email: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
+		return
+	}
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ForgotPassword")
 }
