@@ -229,12 +229,7 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Create(&github)
 	//db.Model(&models.Socials{}).Where("ID = ?", id).Update("GithubID", github.ID)
-	err = db.Model(&models.Socials{}).Joins("JOIN info ON info.socials_id = socials.id").Joins("JOIN users ON users.info_id = info.id").Where("users.id = ?", id).Update("socials.github_id", github.ID).Error
-	if err != nil {
-		fmt.Printf("[ ERROR ][ GetGithubInfo ] Github: Error while updating socials: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while updating socials ", 0), err, http.StatusInternalServerError, "GetGithubInfo")
-		return
-	}
+	db.Table("socials").Joins("JOIN info ON socials.id = info.socials_id").Joins("JOIN users ON users.info_id = info.id").Where("users.id = ?", id).Update("socials.github_id", github.ID)
 	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusMovedPermanently)
 }
 
