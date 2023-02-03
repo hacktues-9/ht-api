@@ -127,7 +127,15 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	db.Create(&discord)
-	db.Model(&models.Socials{}).Joins("JOIN info ON info.socials_id = socials.id").Joins("JOIN users ON users.info_id = info.id").Where("users.id = ?", id).Update("discord_id", discord.ID)
+
+	var infoId uint
+	db.Table("users").Where("ID = ?", id).Pluck("InfoID", &infoId)
+
+	var socials models.Socials
+	db.Table("socials").Where("InfoID = ?", infoId).First(&socials)
+	socials.DiscordID = discord.ID
+	db.Save(&socials)
+
 	http.Redirect(w, r, "https://discord.gg/q6GGxvjjGb", http.StatusMovedPermanently)
 }
 
@@ -229,7 +237,14 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Create(&github)
 	//db.Model(&models.Socials{}).Where("ID = ?", id).Update("GithubID", github.ID)
-	db.Table("socials").Joins("JOIN info ON socials.id = info.socials_id").Joins("JOIN users ON users.info_id = info.id").Where("users.id = ?", id).Update("socials.github_id", github.ID)
+	var infoId uint
+	db.Table("users").Where("ID = ?", id).Pluck("InfoID", &infoId)
+
+	var socials models.Socials
+	db.Table("socials").Where("InfoID = ?", infoId).First(&socials)
+	socials.GithubID = github.ID
+	db.Save(&socials)
+
 	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusMovedPermanently)
 }
 
