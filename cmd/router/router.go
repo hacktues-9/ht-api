@@ -131,6 +131,10 @@ func Init(DB *gorm.DB) {
 		teams.SearchInvitees(w, r, DB)
 	})
 
+	team.HandleFunc("/users/in-team/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/users/in-team/{id}
+		teams.IsUserInTeam(w, r, DB)
+	})
+
 	team.HandleFunc("/get/invitees/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/invitees/{id}
 		teams.GetInvitees(w, r, DB)
 	})
