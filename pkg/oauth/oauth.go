@@ -129,10 +129,13 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Create(&discord)
 
 	var infoId uint
-	db.Table("users").Where("ID = ?", id).Pluck("InfoID", &infoId)
+	db.Table("users").Where("id = ?", id).Pluck("info_id", &infoId)
+
+	var socialsId uint
+	db.Table("info").Where("id = ?", infoId).Pluck("socials_id", &socialsId)
 
 	var socials models.Socials
-	db.Table("socials").Where("InfoID = ?", infoId).First(&socials)
+	db.Table("socials").Where("id = ?", socialsId).First(&socials)
 	socials.DiscordID = discord.ID
 	db.Save(&socials)
 
@@ -238,10 +241,14 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Create(&github)
 	//db.Model(&models.Socials{}).Where("ID = ?", id).Update("GithubID", github.ID)
 	var infoId uint
-	db.Table("users").Where("ID = ?", id).Pluck("InfoID", &infoId)
+	db.Table("users").Where("id = ?", id).Pluck("info_id", &infoId)
+
+	var socialsId uint
+	db.Table("info").Where("id = ?", infoId).Pluck("socials_id", &socialsId)
 
 	var socials models.Socials
-	db.Table("socials").Where("InfoID = ?", infoId).First(&socials)
+	db.Table("socials").Where("id = ?", socialsId).First(&socials)
+
 	socials.GithubID = github.ID
 	db.Save(&socials)
 
