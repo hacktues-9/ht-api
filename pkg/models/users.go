@@ -102,7 +102,7 @@ type Socials struct {
 	LinkedInLink  string
 	InstagramLink string
 
-	ProfilePicture string  `gorm:"default:https://i.stack.imgur.com/l60Hf.png"`
+	ProfilePicture string  `gorm:"default:https://api.hacktues.bg/api/image/John%20Doe"`
 	DiscordID      uint    `gorm:"unique, not null"`
 	Discord        Discord `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL; foreignKey:DiscordID"`
 	GithubID       uint    `gorm:"unique, not null"`
