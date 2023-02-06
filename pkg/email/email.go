@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SendEmail(reciever string, email string, verificationLink string) {
+func SendEmail(reciever string, email string, verificationLink string) error {
 	auth := smtp.PlainAuth(
 		"",
 		"hacktues@elsys-bg.org",
@@ -33,10 +33,11 @@ func SendEmail(reciever string, email string, verificationLink string) {
 		[]string{email},
 		[]byte(msg),
 	)
-
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
 func GenerateVerificationLink(email string, privateKey string, publicKey string, TokenTTL time.Duration) string {

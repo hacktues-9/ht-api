@@ -105,11 +105,21 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	if user.Email != "" {
 		verificationLink := email.GenerateVerificationLink(parseUser.Email, accessTokenPrivateKey, accessTokenPublicKey, verificationLinkTTL)
-		email.SendEmail(user.FirstName+" "+user.LastName, user.Email, verificationLink)
+		err = email.SendEmail(user.FirstName+" "+user.LastName, user.Email, verificationLink)
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ Register ] email: send: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "email: send: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
+			return
+		}
 	}
 
 	verificationLink := email.GenerateVerificationLink(parseUser.ElsysEmail, accessTokenPrivateKey, accessTokenPublicKey, verificationLinkTTL)
-	email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink)
+	err = email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ Register ] email: send: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "email: send: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
+		return
+	}
 
 	if result := db.Omit("TeamID").Create(&user); result.Error != nil {
 		//delete prev Tables
