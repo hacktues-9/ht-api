@@ -18,6 +18,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var accessTokenPublicKey = os.Getenv("ACCESS_TOKEN_PUBLIC_KEY")
+
 func SendEmail(reciever string, email string, verificationLink string) error {
 	from := "hacktues@elsys-bg.org"
 	password := os.Getenv("EMAIL_PASSWORD")
@@ -70,10 +72,11 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 	return hostUrl + "api/user/verify/" + strconv.FormatBool(elsys) + "/" + token
 }
 
-func ValidateEmailToken(token string, publicKey string) (string, error) {
+func ValidateEmailToken(token string) (string, error) {
 	fmt.Println("token: ", token)
-	claims, err := jwt.ValidateToken(token, publicKey)
+	claims, err := jwt.ValidateToken(token, accessTokenPublicKey)
 	if err != nil {
+		fmt.Println("err: ", err)
 		return "", fmt.Errorf("ValidateEmailToken: %w", err)
 	}
 	return strconv.FormatUint(uint64(claims), 10), nil
@@ -89,7 +92,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	email, err := ValidateEmailToken(token, os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
+	email, err := ValidateEmailToken(token)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ ValidateEmail ] validate: token: %s", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "validate: token", 0), err, http.StatusUnauthorized, "ValidateEmail")
