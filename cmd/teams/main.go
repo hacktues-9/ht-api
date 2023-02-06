@@ -653,7 +653,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		//get team technologies
 		var teamTechnologies []string
-		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technologies_id = technologies.id").Pluck("technologies.technology", &teamTechnologies)
+		db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", parseTeam.ID).Where("team_technologies.technologies_id = technologies.id AND team_technologies.deleted_at IS NULL").Pluck("technologies.technology", &teamTechnologies)
 
 		//add team technologies to team
 		teams[len(teams)-1].Technologies = teamTechnologies
