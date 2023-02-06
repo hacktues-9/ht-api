@@ -633,21 +633,15 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			db.Table("projects").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
 
 			//get team project technologies
-			var teamProjectTechnologies []models.Technologies
-			db.Table("technologies").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.ProjectID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
-
-			//parse team project technologies
-			var teamProjectTechnologiesParsed []string
-			for _, teamProjectTechnology := range teamProjectTechnologies {
-				teamProjectTechnologiesParsed = append(teamProjectTechnologiesParsed, teamProjectTechnology.Technology)
-			}
+			var teamProjectTechnologies []string
+			db.Table("technologies").Select("technologies.technology").Joins("JOIN project_technologies ON project_technologies.project_id = ?\n", parseTeam.ProjectID).Where("project_technologies.technology_id = technologies.id").Find(&teamProjectTechnologies)
 
 			//add team project to team
 			teams[len(teams)-1].Project = models.ProjectView{
 				ID:           teamProject.ID,
 				Name:         teamProject.Name,
 				Description:  teamProject.Description,
-				Technologies: teamProjectTechnologiesParsed,
+				Technologies: teamProjectTechnologies,
 			}
 
 		}
@@ -768,7 +762,8 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get team technologies from db
 	var teamTechnologies []string
-	db.Table("team_technologies").Select("technologies.technology").Joins("JOIN technologies ON team_technologies.technologies_id = technologies.id").Where("team_technologies.team_id = ? AND deleted_at IS NULL", teamID).Scan(&teamTechnologies)
+	db.Table("technologies").Joins("JOIN team_technologies ON team_technologies.team_id = ?\n", teamID).Where("team_technologies.technologies_id = technologies.id AND team_technologies.deleted_at IS NULL").Pluck("technologies.technology", &teamTechnologies)
+
 	team.Technologies = teamTechnologies
 
 	// get team projects from db
