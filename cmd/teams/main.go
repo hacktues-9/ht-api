@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -741,6 +742,22 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ GetTeam ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeam")
+		return
+	}
+
+	// get if team is deleted
+	var deletedAt sql.NullTime
+	err = db.Table("team").Where("id = ?\n", teamID).Select("deleted_at").Row().Scan(&deletedAt)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetTeam ] select: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeam")
+		return
+	}
+
+	// if team is deleted return error
+	if deletedAt != (sql.NullTime{}) {
+		fmt.Printf("[ ERROR ] [ GetTeam ] team is deleted\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "team is deleted", 0), nil, http.StatusNotFound, "GetTeam")
 		return
 	}
 

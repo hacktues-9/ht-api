@@ -7,7 +7,8 @@ SELECT team.id,
        team.project_id,
        team.approved
 FROM team
-ORDER BY team.created_at DESC;
+WHERE team.deleted_at IS NULL
+ORDER BY team.created_at;
 
 alter table teams
     owner to doadmin;
