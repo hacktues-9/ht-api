@@ -89,36 +89,33 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	fmt.Println("token: ", token)
-	
+
 	email, err := ValidateEmailToken(token, os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		fmt.Printf("[ ERROR ] [ ValidateEmail ] validate: token: %s", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "validate: token", 0), err, http.StatusUnauthorized, "ValidateEmail")
 		return
 	}
-	user := models.Users{}
-	if result := db.Preload("Security").Where("email = ?", email).First(&user); result.Error != nil {
-		if result := db.Preload("Security").Where("elsys_email = ?", email).First(&user); result.Error != nil {
-			fmt.Println("login: user: find:", result.Error)
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("login: user: find: " + result.Error.Error()))
-			return
-		}
-	}
+	security := models.Security{}
+
 	if elsys {
-		if user.Security.ElsysEmailVerified {
+		db.Table("security").Joins("JOIN users ON users.security_id = security.id").Where("users.elsys_email = ?", email).First(&security)
+
+		if security.ElsysEmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		user.Security.ElsysEmailVerified = true
-		db.Model(models.Security{}).Where("ID = ?", user.SecurityID).Update("elsys_email_verified", user.Security.ElsysEmailVerified)
+		security.ElsysEmailVerified = true
+		db.Model(models.Security{}).Where("ID = ?", security.ID).Update("elsys_email_verified", security.ElsysEmailVerified)
 	} else {
-		if user.Security.EmailVerified {
+		db.Table("security").Joins("JOIN users ON users.security_id = security.id").Where("users.email = ?", email).First(&security)
+
+		if security.EmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		user.Security.EmailVerified = true
-		db.Model(models.Security{}).Where("ID = ?", user.SecurityID).Update("email_verified", user.Security.EmailVerified)
+		security.EmailVerified = true
+		db.Model(models.Security{}).Where("ID = ?", security.ID).Update("email_verified", security.EmailVerified)
 	}
 
 	w.WriteHeader(http.StatusOK)
