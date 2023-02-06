@@ -488,6 +488,16 @@ func AcceptInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			return
 		}
 
+		//check if team is full (max 5 members)
+		var num int64
+		db.Model(&models.Users{}).Where("team_id = ?", teamID).Count(&num)
+
+		if num >= 5 {
+			fmt.Printf("[ ERROR ] [ AcceptInvite ] accept invite: team is full\n")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "accept invite: team is full", 0), err, http.StatusUnauthorized, "AcceptInvite")
+			return
+		}
+
 		//accept user to team
 		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", teamID)
 		//delete invite
@@ -931,7 +941,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// leave team
-	err = db.Table("users").Where("id = ?", sub).Update("team_id", nil).Error
+	err = db.Table("users").Where("id = ?", sub).Updates(map[string]interface{}{"team_id": nil, "role_id": 1}).Error
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ LeaveTeam ] update: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
