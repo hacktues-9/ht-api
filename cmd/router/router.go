@@ -163,6 +163,10 @@ func Init(DB *gorm.DB) {
 		teams.DeleteTeam(w, r, DB)
 	})
 
+	team.HandleFunc("/update/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/captain
+		teams.UpdateCaptain(w, r, DB)
+	})
+
 	team.HandleFunc("/update/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/{id}
 		teams.UpdateTeam(w, r, DB)
 	})
