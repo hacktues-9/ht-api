@@ -1,13 +1,14 @@
 package email
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"net/http"
+	"net/smtp"
 	"os"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -17,14 +18,38 @@ import (
 )
 
 func SendEmail(reciever string, email string, verificationLink string) error {
-	from := mail.NewEmail("Hacktues", "hacktues@elsys-bg.org")
-	subject := "Verify your email"
-	to := mail.NewEmail(reciever, email)
-	plainTextContent := "Follow this link to verify your email: " + verificationLink
-	htmlContent := "<strong>Follow this link to verify your email: " + verificationLink + "</strong>"
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	_, err := client.Send(message)
+	from := "hacktues@elsys-bg.org"
+	password := os.Getenv("EMAIL_PASSWORD")
+
+	to := []string{
+		email,
+	}
+
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	temp, err := template.ParseFiles("email.html")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	var body bytes.Buffer
+
+	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body.Write([]byte(fmt.Sprintf("Subject: Verify your email for Hacktues 9!\n%s\n\n", mimeHeaders)))
+
+	temp.Execute(&body, struct {
+		Name    string
+		Message string
+	}{
+		Name:    reciever,
+		Message: "Please verify your email by clicking the following link : " + verificationLink,
+	})
+
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
 	if err != nil {
 		fmt.Println(err)
 		return err
