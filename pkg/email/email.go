@@ -18,7 +18,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var accessTokenPublicKey = os.Getenv("ACCESS_TOKEN_PUBLIC_KEY")
+var accessTokenPublicKey = fmt.Sprintf("%v", os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
 
 func SendEmail(reciever string, email string, verificationLink string) error {
 	from := "hacktues@elsys-bg.org"
@@ -74,6 +74,8 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 
 func ValidateEmailToken(token string) (string, error) {
 	fmt.Println("token: ", token)
+	fmt.Println("public key: ", accessTokenPublicKey)
+
 	claims, err := jwt.ValidateToken(token, accessTokenPublicKey)
 	if err != nil {
 		fmt.Println("err: ", err)
