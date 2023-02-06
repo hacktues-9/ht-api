@@ -2,8 +2,9 @@ package email
 
 import (
 	"fmt"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"net/http"
-	"net/smtp"
 	"os"
 	"strconv"
 	"strings"
@@ -16,27 +17,18 @@ import (
 )
 
 func SendEmail(reciever string, email string, verificationLink string) error {
-	auth := smtp.PlainAuth(
-		"",
-		"hacktues@elsys-bg.org",
-		os.Getenv("EMAIL_PASSWORD"),
-		"smtp.gmail.com",
-	)
-
-	//verification email
-	msg := "Subject: " + verificationLink
-
-	err := smtp.SendMail(
-		"smtp.gmail.com:587",
-		auth,
-		"hacktues@elsys-bg.org",
-		[]string{email},
-		[]byte(msg),
-	)
+	from := mail.NewEmail("Hacktues", "hacktues@elsys-bg.org")
+	subject := "Verify your email"
+	to := mail.NewEmail(reciever, email)
+	plainTextContent := "Follow this link to verify your email: " + verificationLink
+	htmlContent := "<strong>Follow this link to verify your email: " + verificationLink + "</strong>"
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	_, err := client.Send(message)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-
 	return nil
 }
 

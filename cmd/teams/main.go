@@ -866,7 +866,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// update technologies
-	db.Table("team_technologies").Where("team_id = ?", teamID).Delete(models.TeamTechnologies{})
+	db.Where("team_id = ?", teamID).Delete(models.TeamTechnologies{})
 
 	for _, tech := range team.Technologies {
 		//get technology id
@@ -1042,4 +1042,3 @@ func UpdateCaptain(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateCaptain")
 }
-

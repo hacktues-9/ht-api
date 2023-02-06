@@ -25,6 +25,8 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/rs/cors v1.8.2 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.12.0+incompatible // indirect
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 )
