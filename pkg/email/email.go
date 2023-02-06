@@ -71,6 +71,7 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 }
 
 func ValidateEmailToken(token string, publicKey string) (string, error) {
+	fmt.Println("token: ", token)
 	claims, err := jwt.ValidateToken(token, publicKey)
 	if err != nil {
 		return "", fmt.Errorf("ValidateEmailToken: %w", err)
@@ -87,8 +88,6 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println("token: ", token)
 
 	email, err := ValidateEmailToken(token, os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
 	if err != nil {
