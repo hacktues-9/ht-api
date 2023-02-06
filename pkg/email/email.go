@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -30,7 +31,8 @@ func SendEmail(reciever string, email string, verificationLink string) error {
 
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
-	temp, err := template.ParseFiles("email.html")
+	filePrefix, _ := filepath.Abs("./pkg/email/")
+	temp, err := template.ParseFiles(filePrefix + "/email.html")
 	if err != nil {
 		fmt.Println(err)
 		return err
