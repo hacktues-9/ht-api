@@ -87,6 +87,9 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	fmt.Println("token: ", token)
+	
 	email, err := ValidateEmailToken(token, os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
 	if err != nil {
 		fmt.Println(err)
