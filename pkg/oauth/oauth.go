@@ -377,7 +377,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	http.SetCookie(w, &accessCookie)
 	http.SetCookie(w, &refreshCookie)
-	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusFound)
 }
 
 func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

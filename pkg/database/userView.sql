@@ -5,7 +5,7 @@ as
 $$
 BEGIN
     RETURN QUERY
-        SELECT users.first_name, users.last_name, users.email, users.elsys_email, users.mobile, CONCAT(info.grade, class.name) AS sclass, shirt_size.name, security.email_verified, security.manual_verified, concat(discord.username, discord.discriminator) AS discord, github.login, users.looking_for_team, socials.profile_picture
+        SELECT users.first_name, users.last_name, users.email, users.elsys_email, users.mobile, CONCAT(info.grade, class.name) AS sclass, shirt_size.name, security.email_verified, security.elsys_email_verified, security.manual_verified, concat(discord.username, discord.discriminator) AS discord, github.login, users.looking_for_team, socials.profile_picture
         FROM users
                  JOIN info ON users.info_id = info.id
                  LEFT JOIN security ON users.security_id = security.id

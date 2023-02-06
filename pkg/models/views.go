@@ -51,6 +51,7 @@ type UserView struct {
 	ShirtSize string `json:"shirtSize"`
 
 	EmailVerified      bool `json:"emailVerified"`
+	ElsysEmailVerified bool `json:"elsysEmailVerified"`
 	ProfilePicVerified bool `json:"profilePicVerified"`
 
 	Discord        string `json:"discord"`

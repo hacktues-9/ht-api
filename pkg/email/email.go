@@ -133,8 +133,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		db.Model(models.Security{}).Where("ID = ?", security.ID).Update("email_verified", security.EmailVerified)
 	}
 
-	w.WriteHeader(http.StatusOK)
-	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ValidateEmail")
+	http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusSeeOther)
 }
 
 func SendResetLink(reciever string, email string, resetLink string) error {
