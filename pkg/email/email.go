@@ -73,15 +73,13 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 }
 
 func ValidateEmailToken(token string) (string, error) {
-	fmt.Println("token: ", token)
-	fmt.Println("public key: ", accessTokenPublicKey)
 
-	claims, err := jwt.ValidateToken(token, accessTokenPublicKey)
+	sub, err := jwt.ValidateStringToken(token, accessTokenPublicKey)
 	if err != nil {
 		fmt.Println("err: ", err)
 		return "", err
 	}
-	return strconv.FormatUint(uint64(claims), 10), nil
+	return sub, nil
 }
 
 func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -91,6 +89,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: elsys", 0), err, http.StatusBadRequest, "ValidateEmail")
 		return
 	}
 
@@ -107,6 +106,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.ElsysEmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: elsys", 0), err, http.StatusBadRequest, "ValidateEmail")
 			return
 		}
 		security.ElsysEmailVerified = true
@@ -116,6 +116,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.EmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: email", 0), err, http.StatusBadRequest, "ValidateEmail")
 			return
 		}
 		security.EmailVerified = true

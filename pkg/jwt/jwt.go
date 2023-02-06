@@ -83,6 +83,32 @@ func ValidateToken(token string, publicKey string) (uint, error) {
 	return uint((*claims)["sub"].(float64)), nil
 }
 
+func ValidateStringToken(token string, publicKey string) (string, error) {
+	publicKeyData, err := b64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return "", fmt.Errorf("validateToken: decode: public key: %w", err)
+	}
+
+	parsedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyData)
+	if err != nil {
+		return "", fmt.Errorf("validateToken: parse: public key: %w", err)
+	}
+
+	parsedToken, err := jwt.ParseWithClaims(token, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return parsedPublicKey, nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("validateToken: parse token: %w", err)
+	}
+
+	claims, ok := parsedToken.Claims.(*jwt.MapClaims)
+	if !ok || !parsedToken.Valid {
+		return "", fmt.Errorf("validateToken: claims: %w", err)
+	}
+
+	return fmt.Sprintf("%v", (*claims)["sub"]), nil
+}
+
 func RefreshAccessToken(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	refreshTokenPublicKey := os.Getenv("REFRESH_TOKEN_PUBLIC_KEY")
 	accessTokenPrivateKey := os.Getenv("ACCESS_TOKEN_PRIVATE_KEY")
