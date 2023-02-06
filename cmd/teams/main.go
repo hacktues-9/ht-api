@@ -992,3 +992,54 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeleteTeam")
 }
+
+func UpdateCaptain(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := users.ReturnAuthID(r)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateCaptain ] return auth id: %v\n ", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateCaptain")
+		return
+	}
+
+	// get team id from user
+	var teamID int
+	db.Table("users").Where("id = ?", sub).Select("team_id").Row().Scan(&teamID)
+
+	// check if user is captain
+	var captainID int
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
+
+	if float64(sub) != float64(captainID) {
+		fmt.Printf("[ ERROR ] [ UpdateCaptain ] user is not captain: %v\n ", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user is not captain: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateCaptain")
+		return
+	}
+
+	// get new captain id from url
+	newCaptainID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateCaptain ] parse: %v\n ", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateCaptain")
+		return
+	}
+
+	// check if new captain is in team
+	var newCaptainTeamID int
+	db.Table("users").Where("id = ?", newCaptainID).Select("team_id").Row().Scan(&newCaptainTeamID)
+
+	if float64(newCaptainTeamID) != float64(teamID) {
+		fmt.Printf("[ ERROR ] [ UpdateCaptain ] user is not in team: %v\n ", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "user is not in team: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateCaptain")
+		return
+	}
+
+	// update new captain
+	db.Table("users").Where("id = ?", newCaptainID).Update("role_id", 2)
+
+	// update old captain
+	db.Table("users").Where("id = ?", captainID).Update("role_id", 1)
+
+	// return success
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateCaptain")
+}
+

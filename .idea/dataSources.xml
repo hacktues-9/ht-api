@@ -8,7 +8,7 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="digOcean@ht9" uuid="526350b2-82ef-4580-94ec-def02e8664e1">
+    <data-source source="LOCAL" name="postgres@digOcean" uuid="b58ebc76-25ad-4f31-994a-ac8591109a03">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
