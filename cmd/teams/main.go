@@ -948,6 +948,19 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// delete team if no members
+	var count int64
+	db.Table("users").Where("team_id = ?", teamID).Count(&count)
+
+	if count == 0 {
+		err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
+		if err != nil {
+			fmt.Printf("[ ERROR ] [ LeaveTeam ] delete: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
+			return
+		}
+	}
+
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "LeaveTeam")
 }
