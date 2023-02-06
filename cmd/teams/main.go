@@ -876,7 +876,12 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// update technologies
-	db.Where("team_id = ?", teamID).Delete(models.TeamTechnologies{})
+	err = db.Table("team_technologies").Where("team_id = ?", teamID).Delete(&models.TeamTechnologies{}).Error
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ UpdateTeam ] delete: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+		return
+	}
 
 	for _, tech := range team.Technologies {
 		//get technology id
