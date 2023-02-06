@@ -79,7 +79,7 @@ func ValidateEmailToken(token string) (string, error) {
 	claims, err := jwt.ValidateToken(token, accessTokenPublicKey)
 	if err != nil {
 		fmt.Println("err: ", err)
-		return "", fmt.Errorf("ValidateEmailToken: %w", err)
+		return "", err
 	}
 	return strconv.FormatUint(uint64(claims), 10), nil
 }
