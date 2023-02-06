@@ -385,38 +385,73 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func ForgotPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	mail := mux.Vars(r)["email"]
+	mail := mux.Vars(r)["elsys_email"]
+
+	if mail == "" {
+		fmt.Printf("[ ERROR ] [ ForgotPassword ] mail: empty\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "mail: empty", 0), errors.New(" "), http.StatusBadRequest, "ForgotPassword")
+		return
+	}
 
 	var user models.Users
-	db.Table("users").Where("email = ?", mail).Scan(&user)
+	db.Table("users").Where("elsys_email = ?", mail).Scan(&user)
 
-	if user.FirstName == "" {
+	if user.ID == 0 {
 		fmt.Printf("[ ERROR ] [ ForgotPassword ] user: find: not found %v\n", user)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), errors.New(" "), http.StatusNotFound, "ForgotPassword")
 		return
 	}
+	resetLinkTTL := time.Duration(24) * time.Hour
 
-	//generate new password and hash it
-	newPassword := "123456"
+	resetLink := email.GenerateResetLink(mail, accessTokenPrivateKey, accessTokenPublicKey, resetLinkTTL)
+
+	err := email.SendResetLink(user.FirstName+" "+user.LastName, mail, resetLink)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ForgotPassword ] send email: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "send email: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
+		return
+	}
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ForgotPassword")
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	var parseReset models.ParseReset
+
+	token := mux.Vars(r)["token"]
+	err := json.NewDecoder(r.Body).Decode(&parseReset)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ResetPassword ] json decode: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "json decode: "+err.Error(), 0), err, http.StatusInternalServerError, "ResetPassword")
+		return
+	}
+
+	//validate reset link
+	elsysEmail, err := email.ValidateResetLink(token)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ResetPassword ] validate reset link: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate reset link: "+err.Error(), 0), err, http.StatusBadRequest, "ResetPassword")
+		return
+	}
+
+	//get user id
+	var userID int
+	db.Table("users").Where("elsys_email = ?", elsysEmail).Select("id").Row().Scan(&userID)
+
+	if userID == 0 {
+		fmt.Printf("[ ERROR ] [ ResetPassword ] user: find: not found %v\n", userID)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), errors.New(" "), http.StatusNotFound, "ResetPassword")
+		return
+	}
 
 	//hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(parseReset.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Printf("[ ERROR ] [ ForgotPassword ] bcrypt: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "bcrypt: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
+		fmt.Printf("[ ERROR ] [ ResetPassword ] hash password: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "hash password: "+err.Error(), 0), err, http.StatusInternalServerError, "ResetPassword")
 		return
 	}
 
 	//update password
-	db.Model(&models.Users{}).Where("email = ?", mail).Update("password", hashedPassword)
-
-	//send email
-	//err = sendEmail(email, newPassword)
-	//if err != nil {
-	//	fmt.Printf("[ ERROR ] [ ForgotPassword ] send email: %v\n", err)
-	//	models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "send email: "+err.Error(), 0), err, http.StatusInternalServerError, "ForgotPassword")
-	//	return
-	//}
-
-	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ForgotPassword")
+	db.Model(&models.Users{}).Where("id = ?", userID).Update("password", string(hashedPassword))
 }

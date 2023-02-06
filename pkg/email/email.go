@@ -72,6 +72,16 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 	return hostUrl + "api/user/verify/" + strconv.FormatBool(elsys) + "/" + token
 }
 
+func GenerateResetLink(email string, privateKey string, publicKey string, TokenTTL time.Duration) string {
+	hostUrl := os.Getenv("HOST_URL")
+	token, err := jwt.CreateToken(TokenTTL, email, privateKey, publicKey)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return hostUrl + "api/user/reset/" + token
+}
+
 func ValidateEmailToken(token string) (string, error) {
 
 	sub, err := jwt.ValidateStringToken(token, accessTokenPublicKey)
@@ -124,4 +134,56 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "ValidateEmail")
+}
+
+func SendResetLink(reciever string, email string, resetLink string) error {
+	from := "hacktues@elsys-bg.org"
+	password := os.Getenv("EMAIL_PASSWORD")
+
+	to := []string{
+		email,
+	}
+
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	filePrefix, _ := filepath.Abs("./pkg/email/")
+	temp, err := template.ParseFiles(filePrefix + "/email.html")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	var body bytes.Buffer
+
+	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body.Write([]byte(fmt.Sprintf("Subject: Verify your email for Hacktues 9!\n%s\n\n", mimeHeaders)))
+
+	temp.Execute(&body, struct {
+		Name    string
+		Message string
+	}{
+		Name:    reciever,
+		Message: "Please reset your password by clicking the following link : " + resetLink,
+	})
+
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func ValidateResetLink(token string) (string, error) {
+
+	sub, err := jwt.ValidateStringToken(token, accessTokenPublicKey)
+	if err != nil {
+		fmt.Println("err: ", err)
+		return "", err
+	}
+	return sub, nil
 }

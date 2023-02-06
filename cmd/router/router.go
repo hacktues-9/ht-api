@@ -67,6 +67,10 @@ func Init(DB *gorm.DB) {
 		email.ValidateEmail(w, r, DB)
 	})
 
+	user.HandleFunc("/reset/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/reset/{token}
+		users.ResetPassword(w, r, DB)
+	})
+
 	//admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
 	//	users.FetchUser(w, r, DB)
 	//})
@@ -83,9 +87,9 @@ func Init(DB *gorm.DB) {
 		users.Logout(w)
 	})
 
-	//auth.HandleFunc("/forgot/{email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/forgot
-	//	users.ForgotPassword(w, r, DB)
-	//})
+	auth.HandleFunc("/forgot/{elsys_email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/forgot
+		users.ForgotPassword(w, r, DB)
+	})
 
 	auth.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/me
 		users.GetUserID(w, r)

@@ -95,3 +95,7 @@ type Notification struct {
 	TeamName string `json:"teamName"`
 	TeamLogo string `json:"teamLogo"`
 }
+
+type ParseReset struct {
+	Password string `json:"password"`
+}
