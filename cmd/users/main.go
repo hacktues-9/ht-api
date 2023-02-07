@@ -250,11 +250,21 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "Login")
 }
 
-func GetUserID(w http.ResponseWriter, r *http.Request) {
+func GetUserID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	sub, err := ReturnAuthID(r)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ GetUserID ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUserID")
+		return
+	}
+
+	//check if user exists
+	user := models.Users{}
+	if result := db.Where("ID = ?", sub).First(&user); result.Error != nil {
+		//delete cookies
+		Logout(w)
+		fmt.Printf("[ ERROR ] [ GetUserID ] user: find: %v\n", result.Error)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: "+result.Error.Error(), 0), result.Error, http.StatusNotFound, "GetUserID")
 		return
 	}
 
