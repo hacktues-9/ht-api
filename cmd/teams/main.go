@@ -805,7 +805,7 @@ func GetInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get invitees from db
 	var invitees []models.SearchView //(id bigint, name text, profile_picture text, isinvited boolean)
-	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS profile_picture, true AS isinvited").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("LEFT JOIN invite ON invite.user_id = u.id AND invite.team_id = teamid").Where("users.team_id = ? AND invite.id IS NULL", teamID).Scan(&invitees)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS profile_picture, true AS isinvited, users.elsys_email, security.elsys_email_verified").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN security ON users.security_id = security.id").Joins("LEFT JOIN invite ON invite.user_id = u.id AND invite.team_id = teamid").Where("users.team_id = ? AND invite.id IS NULL", teamID).Scan(&invitees)
 
 	// return invitees
 	models.RespHandler(w, r, models.DefaultPosResponse(invitees), nil, http.StatusOK, "GetInvitees")

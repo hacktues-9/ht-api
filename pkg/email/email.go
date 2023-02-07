@@ -73,13 +73,13 @@ func GenerateVerificationLink(email string, privateKey string, publicKey string,
 }
 
 func GenerateResetLink(email string, privateKey string, publicKey string, TokenTTL time.Duration) string {
-	hostUrl := os.Getenv("HOST_URL")
+	routeUrl := os.Getenv("ROUTE_URL")
 	token, err := jwt.CreateToken(TokenTTL, email, privateKey, publicKey)
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
-	return hostUrl + "api/user/reset/" + token
+	return routeUrl + "forgotten-password/reset/" + token
 }
 
 func ValidateEmailToken(token string) (string, error) {

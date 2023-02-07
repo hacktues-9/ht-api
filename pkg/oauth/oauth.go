@@ -266,7 +266,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Github: code is empty"))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: code is empty\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: code is empty", 0), nil, http.StatusBadRequest, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -284,7 +284,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Github: Error while getting token" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while getting token: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -294,7 +294,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			//w.WriteHeader(http.StatusInternalServerError)
 			//w.Write([]byte("Github: Error while closing body" + err.Error()))
 			fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while closing body: %s\n", err.Error())
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
+			http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 			return
 		}
 	}(resp.Body)
@@ -311,7 +311,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Github: Error on request: " + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error on request: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -324,7 +324,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Github: Error on response.\n[ERRO] -" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error on response: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: Error on response: "+err.Error(), 0), err, http.StatusBadRequest, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -334,7 +334,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			//w.WriteHeader(http.StatusInternalServerError)
 			//w.Write([]byte("Github: Error while closing body" + err.Error()))
 			fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while closing body: %s\n", err.Error())
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
+			http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 			return
 		}
 	}(resps.Body)
@@ -348,7 +348,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("github: parse: " + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: parse: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: parse: "+err.Error(), 0), err, http.StatusBadRequest, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -359,7 +359,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Github: User not found"))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: User not found\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Github: User not found", 0), err, http.StatusBadRequest, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -371,7 +371,7 @@ func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Github: Error while generating tokens" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginGithub ] Github: Error while generating tokens: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Github: Error while generating tokens"+err.Error(), 0), err, http.StatusInternalServerError, "LoginGithub")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -392,7 +392,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Discord: code is empty"))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: code is empty\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: code is empty", 0), nil, http.StatusBadRequest, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -413,7 +413,8 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Discord: Error while getting token" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while getting token: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while getting token"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
+		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -422,7 +423,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			//w.WriteHeader(http.StatusInternalServerError)
 			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
 			fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while closing body: %s\n", err.Error())
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+			http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 			return
 		}
 	}(resp.Body)
@@ -434,7 +435,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Discord: bearer decode error" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: bearer decode error: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: bearer decode error"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -446,8 +447,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Discord: Error on request: " + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error on request: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error on request: "+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
-
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -460,7 +460,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Discord: Error on response.\n[ERRO] -" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error on response: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: Error on response: "+err.Error(), 0), err, http.StatusBadRequest, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -470,7 +470,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			//w.WriteHeader(http.StatusInternalServerError)
 			//w.Write([]byte("Discord: Error while closing body" + err.Error()))
 			fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while closing body: %s\n", err.Error())
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while closing body"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+			http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 			return
 		}
 	}(resps.Body)
@@ -484,7 +484,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("discord: parse: " + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] discord: parse: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "discord: parse: "+err.Error(), 0), err, http.StatusBadRequest, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -495,7 +495,7 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusBadRequest)
 		//w.Write([]byte("Discord: User not found"))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: User not found\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "Discord: User not found", 0), err, http.StatusBadRequest, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
@@ -507,14 +507,14 @@ func LoginDiscord(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//w.WriteHeader(http.StatusInternalServerError)
 		//w.Write([]byte("Discord: Error while generating tokens" + err.Error()))
 		fmt.Printf("[ ERROR ][ LoginDiscord ] Discord: Error while generating tokens: %s\n", err.Error())
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "Discord: Error while generating tokens"+err.Error(), 0), err, http.StatusInternalServerError, "LoginDiscord")
+		http.Redirect(w, r, os.Getenv("ROUTE_URL")+"no-account", http.StatusNotFound)
 		return
 	}
 
 	http.SetCookie(w, &accessCookie)
 	http.SetCookie(w, &refreshCookie)
 
-	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusFound)
 
 }
 

@@ -33,10 +33,12 @@ type TeamsView struct {
 }
 
 type SearchView struct {
-	ID             uint   `json:"id"`
-	Name           string `json:"name"`
-	ProfilePicture string `json:"profile_picture"`
-	IsInvited      bool   `json:"isInvited"`
+	ID                 uint   `json:"id"`
+	Name               string `json:"name"`
+	ProfilePicture     string `json:"profile_picture"`
+	IsInvited          bool   `json:"isInvited"`
+	ElsysEmail         string `json:"elsys_email"`
+	ElsysEmailVerified bool   `json:"elsys_email_verified"`
 }
 
 type UserView struct {
