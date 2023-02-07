@@ -25,7 +25,7 @@ func AddTeamMember(user *models.Users, team *models.Team, db *gorm.DB) error {
 
 func IsUserInTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//check if user is in team
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ IsUserInTeam ] return auth id: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "IsUserInTeam")

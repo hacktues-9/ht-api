@@ -251,7 +251,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func GetUserID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := ReturnAuthID(r)
+	sub, err := ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ GetUserID ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUserID")
@@ -280,7 +280,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "id: parse: "+err.Error(), 0), err, http.StatusBadRequest, "GetUser")
 		return
 	}
-	sub, err := ReturnAuthID(r)
+	sub, err := ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ GetUser ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUser")
@@ -360,7 +360,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	sub, err := ReturnAuthID(r)
+	sub, err := ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ UpdateUser ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "UpdateUser")

@@ -189,3 +189,22 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is already in use", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 	}
 }
+
+func IsVerified(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	sub, err := ReturnAuthID(w, r, db)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ IsVerified ] %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "IsVerified")
+		return
+	}
+
+	var isEmailVerified bool
+	//check if email is verified in db security table
+	db.Table("security").Joins("JOIN users ON users.security_id = security.id").Where("users.id = ?", sub).Pluck("email_verified", &isEmailVerified)
+
+	if isEmailVerified {
+		models.RespHandler(w, r, models.DefaultPosResponse("true"), nil, http.StatusOK, "IsVerified")
+	} else {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "false", 0), nil, http.StatusUnauthorized, "IsVerified")
+	}
+}

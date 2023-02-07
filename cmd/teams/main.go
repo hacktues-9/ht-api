@@ -19,19 +19,25 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseTeam := models.ParseTeam{}
 	user := models.Users{}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ CreateTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "CreateTeam")
 		return
 	}
 
-	db.Where("id = ?", sub).First(&user)
+	db.Preload("security").Where("id = ?", sub).First(&user)
 
 	err = json.NewDecoder(r.Body).Decode(&parseTeam)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ CreateTeam ] parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "CreateTeam")
+		return
+	}
+
+	if user.Security.ElsysEmailVerified == false {
+		fmt.Printf("[ ERROR ] [ CreateTeam ] user is not verified\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "user is not verified", 0), err, http.StatusForbidden, "CreateTeam")
 		return
 	}
 
@@ -189,7 +195,7 @@ func InviteUserToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ InviteUserToTeam ] %v\n", err)
@@ -274,7 +280,7 @@ func ApplyToTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ ApplyToTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "ApplyToTeam")
@@ -334,7 +340,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//get user
 	user := models.Users{}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ RecommendTeam ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, err.Error(), 0), err, http.StatusBadRequest, "RecommendTeam")
@@ -435,7 +441,7 @@ func AcceptInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ AcceptInvite ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "AcceptInvite")
@@ -523,7 +529,7 @@ func DeclineInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ DeclineInvite ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "DeclineInvite")
@@ -669,7 +675,7 @@ func SearchInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get query search=...
 	query := r.URL.Query().Get("search")
 
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ SearchInvitees ] %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "SearchInvitees")
@@ -800,7 +806,7 @@ func GetInvitees(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func KickUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ KickUser ] return auth id: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
@@ -847,7 +853,7 @@ func KickUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ UpdateTeam ] return auth id: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
@@ -916,7 +922,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ LeaveTeam ] return auth id: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
@@ -989,7 +995,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ DeleteTeam ] return auth id: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
@@ -1040,7 +1046,7 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 }
 
 func UpdateCaptain(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	sub, err := users.ReturnAuthID(r)
+	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ UpdateCaptain ] return auth id: %v\n ", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "return auth id: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateCaptain")
