@@ -103,7 +103,7 @@ func Init(DB *gorm.DB) {
 		users.CheckElsysEmail(w, r, DB)
 	})
 
-	auth.HandleFunc("/isVerified/{elsys_email}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/isVerified/{elsys_email}
+	auth.HandleFunc("/isVerified", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/isVerified/{elsys_email}
 		users.IsVerified(w, r, DB)
 	})
 
