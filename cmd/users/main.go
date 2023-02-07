@@ -91,15 +91,16 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	user = models.Users{
-		FirstName:  parseUser.FirstName,
-		LastName:   parseUser.LastName,
-		Email:      parseUser.Email,
-		ElsysEmail: parseUser.ElsysEmail,
-		Mobile:     parseUser.Mobile,
-		Password:   password,
-		InfoID:     userInfo.ID,
-		SecurityID: userSecurity.ID,
-		RoleID:     roleID,
+		FirstName:      parseUser.FirstName,
+		LastName:       parseUser.LastName,
+		Email:          parseUser.Email,
+		ElsysEmail:     parseUser.ElsysEmail,
+		Mobile:         parseUser.Mobile,
+		Password:       password,
+		InfoID:         userInfo.ID,
+		SecurityID:     userSecurity.ID,
+		RoleID:         roleID,
+		LookingForTeam: true,
 	}
 	verificationLinkTTL := time.Duration(24) * time.Hour
 

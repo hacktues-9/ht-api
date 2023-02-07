@@ -82,6 +82,9 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// delete all invites for user
+	db.Where("user_id = ?", user.ID).Delete(&models.Invite{})
+
 	//send invites to invitees
 	for _, invitee := range parseTeam.Invitees {
 		var tempUser models.Users
@@ -460,6 +463,9 @@ func AcceptInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	// delete invites for user
+	db.Where("user_id = ?\n", userID).Delete(&models.Invite{})
+
 	if float64(sub) != float64(userID) {
 		// check if sub is team leader of teamID
 		user := models.Users{}
@@ -483,7 +489,7 @@ func AcceptInvite(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		//accept user to team
-		db.Model(&models.Users{}).Where("id = ?", userID).Update("team_id", teamID)
+		db.Model(&models.Users{}).Where("id = ?", userID).Updates(map[string]interface{}{"team_id": teamID, "role_id": 1})
 		//delete invite
 		db.Where("user_id = ? AND team_id = ?\n", userID, teamID).Delete(&models.Invite{})
 		models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "AcceptInvite")
