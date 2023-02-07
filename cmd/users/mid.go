@@ -16,8 +16,9 @@ import (
 	"unicode/utf8"
 )
 
-func ReturnAuthID(r *http.Request) (uint, error) {
+func ReturnAuthID(w http.ResponseWriter, r *http.Request, db *gorm.DB) (uint, error) {
 	cookie, err := r.Cookie("access_token")
+	_, errR := r.Cookie("refresh_token")
 	authorizationHeader := r.Header.Get("Authorization")
 	fields := strings.Fields(authorizationHeader)
 	accessToken := ""
@@ -27,6 +28,8 @@ func ReturnAuthID(r *http.Request) (uint, error) {
 		accessToken = fields[1]
 	} else if err == nil {
 		accessToken = cookie.Value
+	} else if errR == nil {
+		jwt.RefreshAccessToken(w, r, db)
 	} else {
 		fmt.Println("get user: access token: get:", err)
 		return 0, errors.New("no access token provided")
@@ -70,7 +73,7 @@ func returnDefaultIDs(db *gorm.DB, user *models.RegisterUser) (uint, uint, uint,
 }
 
 func GetNotifications(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
-	userId, err := ReturnAuthID(r)
+	userId, err := ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ GetNotifications ] %v", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetNotifications")
