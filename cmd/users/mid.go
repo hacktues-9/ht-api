@@ -199,6 +199,9 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	//combine splitEmail2[1] and splitEmail[4]
+	splitEmail2[1] = splitEmail2[1] + splitEmail[4]
+
 	if splitEmail2[1] != "elsys-bg.org" {
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 		return
