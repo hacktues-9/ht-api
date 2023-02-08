@@ -921,7 +921,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		//delete team
-		err = db.Delete(&models.Team{}, teamID).Error
+		err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
 		if err != nil {
 			fmt.Printf("[ ERROR ] [ LeaveTeam ] delete: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
