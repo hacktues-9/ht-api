@@ -61,7 +61,7 @@ func PopulateDefault(db *gorm.DB) {
 	var roleValues = []string{"MEMBER", "CAPTAIN", "STUDENT", "MENTOR", "ADMIN"}
 	var eatingPreferenceValues = []string{"VEGETARIAN", "VEGAN", "NONE"}
 	var allergiesValues = []string{"EGGS", "NUTS", "MILK", "GLUTEN"}
-	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL", "XXL"}
+	var shirtSizeValues = []string{"S", "M", "L", "XL", "XXL"}
 	var technologiesValues = []string{"2D Art",
 		"3D Art",
 		"AngularJS",
