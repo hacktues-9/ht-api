@@ -116,7 +116,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.ElsysEmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: elsys", 0), err, http.StatusBadRequest, "ValidateEmail")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: already verified", 0), err, http.StatusBadRequest, "ValidateEmail")
 			return
 		}
 		security.ElsysEmailVerified = true
@@ -126,7 +126,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.EmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
-			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: email", 0), err, http.StatusBadRequest, "ValidateEmail")
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "validate: already verified", 0), err, http.StatusBadRequest, "ValidateEmail")
 			return
 		}
 		security.EmailVerified = true
