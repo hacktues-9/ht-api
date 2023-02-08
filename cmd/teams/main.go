@@ -921,7 +921,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 
 		//delete team
-		err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
+		err = db.Table("team").Where("id = ?", teamID).Delete(&models.Team{}).Error
 		if err != nil {
 			fmt.Printf("[ ERROR ] [ LeaveTeam ] delete: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
@@ -946,7 +946,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Table("users").Where("team_id = ?", teamID).Count(&count)
 
 	if count == 0 {
-		err = db.Table("team").Where("id = ?", teamID).Delete(models.Team{}).Error
+		err = db.Table("team").Where("id = ?", teamID).Delete(&models.Team{}).Error
 		if err != nil {
 			fmt.Printf("[ ERROR ] [ LeaveTeam ] delete: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "delete: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
