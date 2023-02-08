@@ -50,20 +50,20 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//check if splitEmail2[0] is a year after 2018
 	year, err := strconv.Atoi(splitEmail2[0])
 	if err != nil {
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "Register")
 		return
 	}
 
 	if year < 2018 {
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not authorized to participate", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not authorized to participate", 0), nil, http.StatusUnauthorized, "Register")
 		return
 	}
 
 	//combine splitEmail2[1] and splitEmail[4]
-	splitEmail2[1] = splitEmail2[1] + splitEmail[4]
+	splitEmail2[1] = splitEmail2[1] + "." + splitEmail[4]
 
 	if splitEmail2[1] != "elsys-bg.org" {
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "Register")
 		return
 	}
 
