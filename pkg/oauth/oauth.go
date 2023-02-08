@@ -251,7 +251,7 @@ func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Model(&socials).Update("github_id", github.ID)
 
-	http.Redirect(w, r, "https://fuckme.hacktues.bg/", http.StatusMovedPermanently)
+	http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusMovedPermanently)
 }
 
 func LoginGithub(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
