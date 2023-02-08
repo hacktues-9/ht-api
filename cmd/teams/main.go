@@ -73,14 +73,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	//modify user as captain of team
 
-	user.TeamID = team.ID
-	user.RoleID = 2
-
-	if result := db.Save(&user); result.Error != nil {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] save: %v\n", result.Error)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "save: "+result.Error.Error(), 0), result.Error, http.StatusInternalServerError, "CreateTeam")
-		return
-	}
+	db.Model(&user).Updates(models.Users{TeamID: team.ID, RoleID: 2})
 
 	// delete all invites for user
 	db.Where("user_id = ?", user.ID).Delete(&models.Invite{})
