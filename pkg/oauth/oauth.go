@@ -139,7 +139,7 @@ func GetDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Model(&socials).Update("discord_id", discord.ID)
 
-	http.Redirect(w, r, "https://discord.gg/q6GGxvjjGb", http.StatusMovedPermanently)
+	http.Redirect(w, r, "https://discord.gg/UqFRDF6RcN", http.StatusMovedPermanently)
 }
 
 func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

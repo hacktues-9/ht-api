@@ -26,7 +26,7 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	db.Preload("security").Where("id = ?", sub).First(&user)
+	db.Preload(clause.Associations).Where("id = ?", sub).First(&user)
 
 	err = json.NewDecoder(r.Body).Decode(&parseTeam)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hacktues-9/API/pkg/email"
@@ -38,6 +39,31 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ Register ] registerUser: parse: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "registerUser: parse: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
+		return
+	}
+
+	//check if email is valid elsys email format [name].[middle name initial].[surname].[yearofEntry]@elsys-bg.org
+	//split email by . and @
+	splitEmail := strings.Split(parseUser.ElsysEmail, ".")
+	splitEmail2 := strings.Split(splitEmail[3], "@")
+
+	//check if splitEmail2[0] is a year after 2018
+	year, err := strconv.Atoi(splitEmail2[0])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ Register ] Atoi: %v", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
+
+	if year < 2018 {
+		fmt.Printf("[ ERROR ] [ Register ] email is not valid elsys email: %v", parseUser.ElsysEmail)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not authorized to participate", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
+
+	if splitEmail2[1] != "elsys-bg.org" {
+		fmt.Printf("[ ERROR ] [ Register ] email is not valid elsys email: %v", parseUser.ElsysEmail)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 		return
 	}
 
@@ -103,10 +129,12 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		LookingForTeam: true,
 	}
 	verificationLinkTTL := time.Duration(24) * time.Hour
+	deletionLinkTTL := time.Duration(256) * time.Hour
 
 	if user.Email != "" {
 		verificationLink := email.GenerateVerificationLink(parseUser.Email, accessTokenPrivateKey, accessTokenPublicKey, verificationLinkTTL)
-		err = email.SendEmail(user.FirstName+" "+user.LastName, user.Email, verificationLink)
+		deletionLink := email.GenerateDeletionLink(parseUser.Email, accessTokenPrivateKey, accessTokenPublicKey, deletionLinkTTL)
+		err = email.SendEmail(user.FirstName+" "+user.LastName, user.Email, verificationLink, deletionLink)
 		if err != nil {
 			fmt.Printf("[ ERROR ] [ Register ] email: send: %v\n", err)
 			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "email: send: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
@@ -115,7 +143,8 @@ func Register(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	verificationLink := email.GenerateVerificationLink(parseUser.ElsysEmail, accessTokenPrivateKey, accessTokenPublicKey, verificationLinkTTL)
-	err = email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink)
+	deletionLink := email.GenerateDeletionLink(parseUser.ElsysEmail, accessTokenPrivateKey, accessTokenPublicKey, deletionLinkTTL)
+	err = email.SendEmail(user.FirstName+" "+user.LastName, user.ElsysEmail, verificationLink, deletionLink)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ Register ] email: send: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "email: send: "+err.Error(), 0), err, http.StatusInternalServerError, "Register")
@@ -465,4 +494,27 @@ func ResetPassword(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	//update password
 	db.Model(&models.Users{}).Where("id = ?", userID).Update("password", string(hashedPassword))
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	token := mux.Vars(r)["token"]
+
+	mail, err := email.ValidateEmailToken(token)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ ValidateEmail ] validate: token: %s", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "validate: token", 0), err, http.StatusUnauthorized, "ValidateEmail")
+		return
+	}
+
+	var user models.Users
+	db.Table("users").Where("elsys_email = ?", mail).Scan(&user)
+	if user.ID == 0 {
+		fmt.Printf("[ ERROR ] [ DeleteUser ] user: find: not found %v\n", user)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusNotFound, "user: find: not found", 0), errors.New(" "), http.StatusNotFound, "DeleteUser")
+		return
+	}
+
+	db.Delete(&user)
+
+	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeleteUser")
 }

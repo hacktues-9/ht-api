@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -179,6 +180,28 @@ func CheckEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email := mux.Vars(r)["email"]
+
+	//check if email is valid elsys email format [name].[middle name initial].[surname].[yearofEntry]@elsys-bg.org
+	//split email by . and @
+	splitEmail := strings.Split(email, ".")
+	splitEmail2 := strings.Split(splitEmail[3], "@")
+
+	//check if splitEmail2[0] is a year after 2018
+	year, err := strconv.Atoi(splitEmail2[0])
+	if err != nil {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
+
+	if year < 2018 {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not authorized to participate", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
+
+	if splitEmail2[1] != "elsys-bg.org" {
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
 
 	var user models.Users
 	db.Where("elsys_email = ?", email).First(&user)

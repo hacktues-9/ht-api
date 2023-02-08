@@ -20,7 +20,7 @@ import (
 
 var accessTokenPublicKey = fmt.Sprintf("%v", os.Getenv("ACCESS_TOKEN_PUBLIC_KEY"))
 
-func SendEmail(reciever string, email string, verificationLink string) error {
+func SendEmail(receiver string, email string, verificationLink string, deletionLink string) error {
 	from := "hacktues@elsys-bg.org"
 	password := os.Getenv("EMAIL_PASSWORD")
 
@@ -48,9 +48,11 @@ func SendEmail(reciever string, email string, verificationLink string) error {
 	temp.Execute(&body, struct {
 		Name    string
 		Message string
+		Warning string
 	}{
-		Name:    reciever,
-		Message: "Please verify your email by clicking the following link : " + verificationLink,
+		Name:    receiver,
+		Message: "Вашият email адрес трябва да бъде потвърден, за да можете да се регистрирате за Hacktues 9. Моля, натиснете върху линка по-долу, за да потвърдите вашият email адрес : " + verificationLink,
+		Warning: "Ако не сте регистрирали се за Hacktues 9, моля натиснете върху линка по-долу, за да отмените регистрацията си : " + deletionLink,
 	})
 
 	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
@@ -185,4 +187,14 @@ func ValidateResetLink(token string) (string, error) {
 		return "", err
 	}
 	return sub, nil
+}
+
+func GenerateDeletionLink(email string, privateKey string, publicKey string, TokenTTL time.Duration) string {
+	hostUrl := os.Getenv("HOST_URL")
+	token, err := jwt.CreateToken(TokenTTL, email, privateKey, publicKey)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return hostUrl + "api/auth/delete/" + token
 }
