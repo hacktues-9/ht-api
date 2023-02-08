@@ -347,12 +347,7 @@ func RecommendTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	//get user technologies
 	var userTechnologies []models.Technologies
-	err = db.Model(&user).Association("Technologies").Find(&userTechnologies)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ RecommendTeam ] get user technologies: find: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "get user technologies: find: "+err.Error(), 0), err, http.StatusInternalServerError, "RecommendTeam")
-		return
-	}
+	db.Model(&user).Association("Technologies").Find(&userTechnologies)
 
 	//get teams
 	var teams []models.Team
@@ -707,12 +702,7 @@ func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get team id from db
 	var teamID int
-	err = db.Table("users").Where("id = ?\n", userID).Select("team_id").Row().Scan(&teamID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetTeamID ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeamID")
-		return
-	}
+	db.Table("users").Where("id = ?\n", userID).Select("team_id").Row().Scan(&teamID)
 
 	// return team id
 	models.RespHandler(w, r, models.DefaultPosResponse(teamID), nil, http.StatusOK, "GetTeamID")
@@ -731,12 +721,7 @@ func GetCaptainID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get captain id from db
 	var captainID int
-	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetCaptainID ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetCaptainID")
-		return
-	}
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 
 	// return captain id
 	models.RespHandler(w, r, models.DefaultPosResponse(captainID), nil, http.StatusOK, "GetCaptainID")
@@ -752,12 +737,7 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get if team is deleted
 	var deletedAt sql.NullTime
-	err = db.Table("team").Where("id = ?\n", teamID).Select("deleted_at").Row().Scan(&deletedAt)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ GetTeam ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "GetTeam")
-		return
-	}
+	db.Table("team").Where("id = ?\n", teamID).Select("deleted_at").Row().Scan(&deletedAt)
 
 	// if team is deleted return error
 	if deletedAt != (sql.NullTime{}) {
@@ -822,16 +802,11 @@ func KickUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get team id from user
 	var teamID int
-	err = db.Table("users").Select("team_id").Where("id = ?", userID).Row().Scan(&teamID)
+	db.Table("users").Select("team_id").Where("id = ?", userID).Row().Scan(&teamID)
 
 	// check if user is captain
 	var captainID int
-	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ KickUser ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "KickUser")
-		return
-	}
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 
 	if float64(sub) != float64(captainID) {
 		fmt.Printf("[ ERROR ] [ KickUser ] user is not captain: %v\n", err)
@@ -869,12 +844,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// check if user is captain
 	var captainID int
-	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ UpdateTeam ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
-		return
-	}
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 
 	if float64(sub) != float64(captainID) {
 		fmt.Printf("[ ERROR ] [ UpdateTeam ] user is not captain: %v\n", err)
@@ -938,12 +908,7 @@ func LeaveTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// check if user is captain
 	var captainID int
-	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ LeaveTeam ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "LeaveTeam")
-		return
-	}
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 
 	if float64(sub) == float64(captainID) {
 		// delete team
@@ -1011,12 +976,7 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// check if user is captain
 	var captainID int
-	err = db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ DeleteTeam ] select: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "select: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")
-		return
-	}
+	db.Table("users").Where("team_id = ? AND role_id = 2", teamID).Select("id").Row().Scan(&captainID)
 
 	if float64(sub) != float64(captainID) {
 		fmt.Printf("[ ERROR ] [ DeleteTeam ] user is not captain: %v\n", err)
