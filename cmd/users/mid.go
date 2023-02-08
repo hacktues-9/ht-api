@@ -181,7 +181,7 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email := mux.Vars(r)["email"]
 
 	var user models.Users
-	db.Where("email = ?", email).First(&user)
+	db.Where("elsys_email = ?", email).First(&user)
 
 	if user.ID == 0 {
 		models.RespHandler(w, r, models.DefaultPosResponse("email is available"), nil, http.StatusOK, "CheckElsysEmail")
@@ -192,7 +192,7 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 func IsVerified(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	sub, err := ReturnAuthID(w, r, db)
-	
+
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ IsVerified ] %v", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "IsVerified")
