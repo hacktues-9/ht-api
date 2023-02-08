@@ -27,7 +27,11 @@ func Init() *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&models.Class{})
+	err := db.AutoMigrate(&models.Class{})
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	db.AutoMigrate(&models.Role{})
 	db.AutoMigrate(&models.EatingPreference{})
 	db.AutoMigrate(&models.Allergies{})
@@ -41,7 +45,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&models.Pictures{})
 	db.AutoMigrate(&models.Invites{})
 	db.AutoMigrate(&models.Team{})
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Users{})
 	db.AutoMigrate(&models.Invite{})
 	db.AutoMigrate(&models.InfoAllergies{})
 	db.AutoMigrate(&models.UserTechnologies{})
@@ -54,11 +58,97 @@ func Migrate(db *gorm.DB) {
 
 func PopulateDefault(db *gorm.DB) {
 	var classValues = []string{"А", "Б", "В", "Г"}
-	var roleValues = []string{"student", "member", "captain", "mentor", "tester", "admin"}
-	var eatingPreferenceValues = []string{"default", "vegetarian", "vegan", "omnivore", "pescetarian", "other"}
-	var allergiesValues = []string{"none", "nuts", "gluten", "dairy", "other"}
-	var shirtSizeValues = []string{"XS", "S", "M", "L", "XL"}
-	var technologiesValues = []string{"C", "C++", "C#", "Java", "Python", "JavaScript", "HTML", "CSS", "PHP", "Ruby", "Go", "Swift", "Kotlin", "Rust", "Scala", "Haskell", "Elixir", "Erlang", "Clojure", "Lua", "Perl", "R", "SQL", "Bash", "Assembly", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes"}
+	var roleValues = []string{"MEMBER", "CAPTAIN", "STUDENT", "MENTOR", "ADMIN"}
+	var eatingPreferenceValues = []string{"VEGETARIAN", "VEGAN", "NONE"}
+	var allergiesValues = []string{"EGGS", "NUTS", "MILK", "GLUTEN"}
+	var shirtSizeValues = []string{"S", "M", "L", "XL", "XXL"}
+	var technologiesValues = []string{"2D Art",
+		"3D Art",
+		"AngularJS",
+		"Apache",
+		"Arduino",
+		"Assembly",
+		"AWS",
+		"Azure",
+		"Babel",
+		"Bash",
+		"Blender",
+		"Blockchain",
+		"Bootstrap",
+		"C",
+		"C#",
+		"C++",
+		"Cloud computing",
+		"CSS",
+		"Dart",
+		"Django",
+		"Docker",
+		"Elexir",
+		"Emacs",
+		"Embedded",
+		"ESP32 / ESP8266",
+		"ExpressJS",
+		"Firebase",
+		"Flutter",
+		"Git",
+		"Golang",
+		"Google Cloud",
+		"HangFire",
+		"HTML",
+		"IBM cloud",
+		"IoT",
+		"Java",
+		"JavaScript",
+		"Jest",
+		"jQuery",
+		"Kotlin",
+		"Kubernetes",
+		"Less",
+		"Linux",
+		"MATLAB",
+		"MicroPython",
+		"ML",
+		"Mobile Development",
+		"MongoDB",
+		"MUI",
+		"MySQL",
+		"NextJS",
+		"Nginx",
+		"Node-RED",
+		"NodeJS",
+		"NoSQL",
+		"OOPs",
+		"PHP",
+		"PostgreSQL",
+		"Python",
+		"Raspberry Pi",
+		"React Native",
+		"ReactJS",
+		"REST",
+		"Ruby",
+		"Ruby on Rails",
+		"Rust",
+		"Sass",
+		"Security",
+		"Smart contracts",
+		"Solidity",
+		"SQL",
+		"Svelte",
+		"Swift",
+		"Tailwind",
+		"TensorFlow",
+		"TypeScript",
+		"Unity3D",
+		"Unreal Engine",
+		"Vercel",
+		"Vim",
+		"Vite",
+		"VueJS",
+		"Web Development",
+		"Webpack",
+		"WordPress",
+		"Компютърни мрежи",
+	}
 
 	for _, class := range classValues {
 		db.Create(&models.Class{Name: class})
@@ -94,7 +184,7 @@ func Drop(db *gorm.DB) {
 	db.Migrator().DropTable(&models.UserTechnologies{})
 	db.Migrator().DropTable(&models.InfoAllergies{})
 	db.Migrator().DropTable(&models.Invite{})
-	db.Migrator().DropTable(&models.User{})
+	db.Migrator().DropTable(&models.Users{})
 	db.Migrator().DropTable(&models.Team{})
 	db.Migrator().DropTable(&models.Invites{})
 	db.Migrator().DropTable(&models.Pictures{})

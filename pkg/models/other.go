@@ -34,16 +34,17 @@ type DiscordBearer struct {
 }
 
 type RegisterUser struct {
-	FirstName        string   `json:"first_name"`
-	LastName         string   `json:"last_name"`
+	FirstName        string   `json:"firstName"`
+	LastName         string   `json:"lastName"`
 	Email            string   `json:"email"`
-	ElsysEmail       string   `json:"elsys_email"`
-	Mobile           string   `json:"mobile"`
+	ElsysEmail       string   `json:"elsysEmail"`
+	Mobile           string   `json:"phone"`
 	Password         string   `json:"password"`
-	Class            string   `json:"class"`
-	Grade            string   `json:"grade"`
-	ShirtSize        string   `json:"shirt_size"`
-	EatingPreference string   `json:"eating_preference"`
+	ConfirmPassword  string   `json:"confirmPassword"`
+	Class            string   `json:"classLetter"`
+	Grade            string   `json:"classNumber"`
+	ShirtSize        string   `json:"shirtSize"`
+	EatingPreference string   `json:"eatingPreferences"`
 	Allergies        []string `json:"allergies"`
 	Technologies     []string `json:"technologies"`
 }
@@ -51,4 +52,50 @@ type RegisterUser struct {
 type LoginUser struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
+}
+
+type ParseTeam struct {
+	Name         string       `json:"teamName"`
+	Description  string       `json:"teamDescription"`
+	Technologies []string     `json:"teamTechnologies"`
+	Invitees     []SearchView `json:"teamInvitees"`
+}
+
+type ParseInvite struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}
+
+type ParseApply struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}
+
+type ParseAccept struct {
+	UserID uint `json:"userId"`
+	TeamID uint `json:"teamId"`
+}
+
+type ParseTeamView struct {
+	ID        uint   `json:"tid"`
+	Name      string `json:"name"`
+	Logo      string `json:"logo"`
+	ProjectID uint   `json:"pid"`
+	Approved  bool   `json:"approved"`
+}
+
+type ParseChangeUser struct {
+	ID             uint     `json:"id"`
+	Technologies   []string `json:"technologies"`
+	LookingForTeam bool     `json:"lookingForTeam"`
+}
+
+type Notification struct {
+	TeamID   uint   `json:"teamId"`
+	TeamName string `json:"teamName"`
+	TeamLogo string `json:"teamLogo"`
+}
+
+type ParseReset struct {
+	Password string `json:"password"`
 }

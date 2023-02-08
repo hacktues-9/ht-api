@@ -57,30 +57,56 @@ func CreateToken(ttl time.Duration, payload interface{}, privateKey string, publ
 	return token.Raw, nil
 }
 
-func ValidateToken(token string, publicKey string) (interface{}, error) {
+func ValidateToken(token string, publicKey string) (uint, error) {
 	publicKeyData, err := b64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
-		return nil, fmt.Errorf("validateToken: decode: public key: %w", err)
+		return 0, fmt.Errorf("validateToken: decode: public key: %w", err)
 	}
 
 	parsedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyData)
 	if err != nil {
-		return nil, fmt.Errorf("validateToken: parse: public key: %w", err)
+		return 0, fmt.Errorf("validateToken: parse: public key: %w", err)
 	}
 
 	parsedToken, err := jwt.ParseWithClaims(token, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return parsedPublicKey, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("validateToken: parse token: %w", err)
+		return 0, fmt.Errorf("validateToken: parse token: %w", err)
 	}
 
 	claims, ok := parsedToken.Claims.(*jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
-		return nil, fmt.Errorf("validateToken: claims: %w", err)
+		return 0, fmt.Errorf("validateToken: claims: %w", err)
 	}
 
-	return (*claims)["sub"], nil
+	return uint((*claims)["sub"].(float64)), nil
+}
+
+func ValidateStringToken(token string, publicKey string) (string, error) {
+	publicKeyData, err := b64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return "", fmt.Errorf("validateToken: decode: public key: %w", err)
+	}
+
+	parsedPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyData)
+	if err != nil {
+		return "", fmt.Errorf("validateToken: parse: public key: %w", err)
+	}
+
+	parsedToken, err := jwt.ParseWithClaims(token, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return parsedPublicKey, nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("validateToken: parse token: %w", err)
+	}
+
+	claims, ok := parsedToken.Claims.(*jwt.MapClaims)
+	if !ok || !parsedToken.Valid {
+		return "", fmt.Errorf("validateToken: claims: %w", err)
+	}
+
+	return fmt.Sprintf("%v", (*claims)["sub"]), nil
 }
 
 func RefreshAccessToken(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -105,7 +131,7 @@ func RefreshAccessToken(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	user := models.User{}
+	user := models.Users{}
 	db.Where("ID = ?", sub).First(&user)
 
 	accessToken, err := CreateToken(accessTokenTTL, user.ID, accessTokenPrivateKey, accessTokenPublicKey)
