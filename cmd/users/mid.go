@@ -184,6 +184,7 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//check if email is valid elsys email format [name].[middle name initial].[surname].[yearofEntry]@elsys-bg.org
 	//split email by . and @
 	splitEmail := strings.Split(email, ".")
+	fmt.Printf("%v", splitEmail)
 	splitEmail2 := strings.Split(splitEmail[3], "@")
 
 	//check if splitEmail2[0] is a year after 2018
