@@ -183,6 +183,12 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	//check if email is valid elsys email format [name].[middle name initial].[surname].[yearofEntry]@elsys-bg.org
 	//split email by . and @
+	//check if email has . and @ in it
+	if !strings.Contains(email, ".") || !strings.Contains(email, "@") {
+		fmt.Printf("[ ERROR ] [ CheckElsysEmail ] email is not valid\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
+		return
+	}
 	splitEmail := strings.Split(email, ".")
 	splitEmail2 := strings.Split(splitEmail[3], "@")
 
