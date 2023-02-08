@@ -189,11 +189,13 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//check if splitEmail2[0] is a year after 2018
 	year, err := strconv.Atoi(splitEmail2[0])
 	if err != nil {
+		fmt.Printf("[ ERROR ] [ CheckElsysEmail ] %v", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 		return
 	}
 
 	if year < 2018 {
+		fmt.Printf("[ ERROR ] [ CheckElsysEmail ] year is not valid (year < 2018)")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not authorized to participate", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 		return
 	}
@@ -202,6 +204,7 @@ func CheckElsysEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	splitEmail2[1] = splitEmail2[1] + splitEmail[4]
 
 	if splitEmail2[1] != "elsys-bg.org" {
+		fmt.Printf("[ ERROR ] [ CheckElsysEmail ] email is not valid elsys email, %v", splitEmail2[1])
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "email is not valid elsys email", 0), nil, http.StatusUnauthorized, "CheckElsysEmail")
 		return
 	}
