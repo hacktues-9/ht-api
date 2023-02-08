@@ -230,7 +230,7 @@ func IsVerified(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	var isEmailVerified bool
 	//check if email is verified in db security table
-	db.Table("security").Joins("JOIN users ON users.security_id = security.id").Where("users.id = ?", sub).Pluck("email_verified", &isEmailVerified)
+	db.Table("security").Joins("JOIN users ON users.security_id = security.id").Where("users.id = ?", sub).Pluck("elsys_email_verified", &isEmailVerified)
 
 	if isEmailVerified {
 		models.RespHandler(w, r, models.DefaultPosResponse("true"), nil, http.StatusOK, "IsVerified")
