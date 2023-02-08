@@ -518,3 +518,31 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "DeleteUser")
 }
+
+func GetUserRole(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// get id int from query
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetUser ] id: parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "id: parse: "+err.Error(), 0), err, http.StatusBadRequest, "GetUser")
+		return
+	}
+	sub, err := ReturnAuthID(w, r, db)
+	if err != nil {
+		fmt.Printf("[ ERROR ] [ GetUser ] %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, err.Error(), 0), err, http.StatusUnauthorized, "GetUser")
+		return
+	}
+
+	if float64(sub) != float64(id) {
+		fmt.Printf("[ ERROR ] [ GetUser ] access token: validate: wrong id %v %v\n", sub, id)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "access token: validate: wrong id", 0), err, http.StatusUnauthorized, "GetUser")
+		return
+	}
+
+	var roleId int
+	db.Table("users").Where("id = ?", id).Select("role_id").Row().Scan(&roleId)
+
+	models.RespHandler(w, r, models.DefaultPosResponse(roleId), nil, http.StatusOK, "GetUserRole")
+}

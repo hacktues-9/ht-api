@@ -702,7 +702,7 @@ func GetTeamID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get team id from db
 	var teamID int
-	db.Table("users").Where("id = ?\n", userID).Select("team_id").Row().Scan(&teamID)
+	db.Table("users").Where("id = ?", userID).Select("team_id").Row().Scan(&teamID)
 
 	// return team id
 	models.RespHandler(w, r, models.DefaultPosResponse(teamID), nil, http.StatusOK, "GetTeamID")

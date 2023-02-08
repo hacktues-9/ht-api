@@ -111,6 +111,10 @@ func Init(DB *gorm.DB) {
 		users.IsVerified(w, r, DB)
 	})
 
+	user.HandleFunc("/get/role/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get/role/{id}
+		users.GetUserRole(w, r, DB)
+	})
+
 	user.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get
 		users.GetUser(w, r, DB)
 	})
