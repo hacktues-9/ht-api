@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/hacktues-9/API/cmd/admins"
 	"github.com/hacktues-9/API/pkg/models"
 	"net/http"
 
@@ -199,8 +200,8 @@ func Init(DB *gorm.DB) {
 		users.GenerateImage(w, r, DB)
 	})
 
-	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/get/teams
-		admin.GetTeams(w, r, DB)
+	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/get/teams
+		admins.GetTeams(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{

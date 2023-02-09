@@ -1,4 +1,4 @@
-package admin
+package admins
 
 import (
 	"encoding/json"
@@ -27,5 +27,5 @@ func SearchWithFilters(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// get users with filters
 	var users []models.Users
-	
+
 }
