@@ -20,7 +20,7 @@ func Init(DB *gorm.DB) {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
-	//admin := r.PathPrefix("/admin").Subrouter()
+	admin := r.PathPrefix("/admin").Subrouter()
 	// mentor := r.PathPrefix("/mentor").Subrouter()
 	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
@@ -197,6 +197,10 @@ func Init(DB *gorm.DB) {
 
 	r.HandleFunc("/image/{name}", func(w http.ResponseWriter, r *http.Request) { // route - /api/image/{name}
 		users.GenerateImage(w, r, DB)
+	})
+
+	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/get/teams
+		admin.GetTeams(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{
