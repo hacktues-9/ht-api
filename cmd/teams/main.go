@@ -19,15 +19,6 @@ func CreateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	parseTeam := models.ParseTeam{}
 	user := models.Users{}
 
-	//check if there arent 60 teams already
-	var count int64
-	db.Model(&models.Team{}).Count(&count)
-	if count >= 61 {
-		fmt.Printf("[ ERROR ] [ CreateTeam ] too many teams\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusForbidden, "too many teams", 0), nil, http.StatusForbidden, "CreateTeam")
-		return
-	}
-
 	sub, err := users.ReturnAuthID(w, r, db)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ CreateTeam ] %v\n", err)
