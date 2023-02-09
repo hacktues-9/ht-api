@@ -170,3 +170,16 @@ type UserTechnologies struct {
 	TechnologiesID uint         `gorm:"not null"`
 	Technologies   Technologies `gorm:"foreignKey:TechnologiesID"`
 }
+
+type ParseFilterUsers struct {
+	Grade            int    `json:"grade"`
+	Class            string `json:"class"`
+	ShirtSize        string `json:"shirt_size"`
+	Name             string `json:"name"`
+	ElsysEmail       string `json:"elsys_email"`
+	Email            string `json:"email"`
+	Mobile           string `json:"mobile"`
+	Team             string `json:"team"`
+	Allergies        string `json:"allergies"`
+	EatingPreference string `json:"eating_preference"`
+}

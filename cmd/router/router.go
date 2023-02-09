@@ -61,7 +61,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	auth.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/register
-		w.WriteHeader(http.StatusInternalServerError)
+		users.Register(w, r, DB)
 	})
 
 	user.HandleFunc("/verify/{elsys}/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/verify/{elsys}/{token}
@@ -72,7 +72,7 @@ func Init(DB *gorm.DB) {
 		users.ResetPassword(w, r, DB)
 	})
 
-	//admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
+	//admins.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/search-user
 	//	users.FetchUser(w, r, DB)
 	//})
 
@@ -137,7 +137,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
-		w.WriteHeader(http.StatusInternalServerError)
+		teams.AcceptInvite(w, r, DB)
 	})
 
 	team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
