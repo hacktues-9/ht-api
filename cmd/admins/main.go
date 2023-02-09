@@ -8,11 +8,11 @@ import (
 
 func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get teams with 3 to 5 members
-	var teams []models.Team
+	var count int64
 
-	db.Raw("SELECT * FROM team WHERE id IN (SELECT team_id FROM users GROUP BY team_id HAVING COUNT(*) >= 3 AND COUNT(*) <= 5)").Scan(&teams)
+	db.Raw("SELECT * FROM team WHERE id IN (SELECT team_id FROM users GROUP BY team_id HAVING COUNT(*) >= 3 AND COUNT(*) <= 5)").Count(&count)
 
-	models.RespHandler(w, r, models.DefaultPosResponse(teams), nil, http.StatusOK, "AdminGetTeams")
+	models.RespHandler(w, r, models.DefaultPosResponse(count), nil, http.StatusOK, "AdminGetTeams")
 }
 
 //func SearchWithFilters(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
