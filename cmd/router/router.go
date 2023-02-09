@@ -125,7 +125,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	team.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/create
-		teams.CreateTeam(w, r, DB)
+		w.WriteHeader(http.StatusInternalServerError)
 	})
 
 	team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
