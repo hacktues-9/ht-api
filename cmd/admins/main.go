@@ -2,6 +2,7 @@ package admins
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
 	"net/http"
@@ -21,7 +22,8 @@ func SearchWithFilters(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var filters models.ParseFilterUsers
 	err := json.NewDecoder(r.Body).Decode(&filters)
 	if err != nil {
-		models.RespHandler(w, r, nil, err, http.StatusBadRequest, "AdminSearchWithFilters")
+		fmt.Printf("[ ERROR ] [ SearchWithFilters ] parse: %v\n", err)
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "parse: "+err.Error(), 0), err, http.StatusInternalServerError, "AdminSearchWithFilters")
 		return
 	}
 
