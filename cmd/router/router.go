@@ -137,7 +137,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
-		teams.AcceptInvite(w, r, DB)
+		w.WriteHeader(http.StatusInternalServerError)
 	})
 
 	team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
