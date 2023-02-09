@@ -89,3 +89,20 @@ type GetTeamView struct {
 	Members      []MemberTeamView `json:"members"`
 	Project      ProjectTeamView  `json:"project"`
 }
+
+type KurView struct {
+	Class              string `json:"class"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	Email              string `json:"email"`
+	ElsysEmail         string `json:"elsys_email"`
+	Mobile             string `json:"mobile"`
+	ShirtSize          string `json:"shirt_size"`
+	EatingPreference   string `json:"eating_preference"`
+	EmailVerified      bool   `json:"email_verified"`
+	ElsysEmailVerified bool   `json:"elsys_email_verified"`
+	ManualVerified     bool   `json:"manual_verified"`
+	Discord            string `json:"discord"`
+	Github             string `json:"github"`
+	Team               string `json:"team"`
+}

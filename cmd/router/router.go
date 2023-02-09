@@ -72,10 +72,9 @@ func Init(DB *gorm.DB) {
 		users.ResetPassword(w, r, DB)
 	})
 
-	//admins.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/search-user
-	//	users.FetchUser(w, r, DB)
-	//})
-
+	admin.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search
+		admins.SearchWithFilters(w, r, DB)
+	})
 	auth.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/login
 		users.Login(w, r, DB)
 	})

@@ -180,6 +180,5 @@ type ParseFilterUsers struct {
 	Email            string `json:"email"`
 	Mobile           string `json:"mobile"`
 	Team             string `json:"team"`
-	Allergies        string `json:"allergies"`
 	EatingPreference string `json:"eating_preference"`
 }
