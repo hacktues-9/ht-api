@@ -61,7 +61,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	auth.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/register
-		users.Register(w, r, DB)
+		w.WriteHeader(http.StatusInternalServerError)
 	})
 
 	user.HandleFunc("/verify/{elsys}/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/verify/{elsys}/{token}
