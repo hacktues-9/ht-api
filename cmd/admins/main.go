@@ -29,7 +29,7 @@ func SearchWithFilters(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	//get roleId
 	var roleId int
 	db.Table("users").Select("role_id").Where("id = ?", sub).Find(&roleId)
-	if roleId != 2 {
+	if roleId != 5 {
 		fmt.Printf("[ ERROR ] [ SearchWithFilters ] unauthorized: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusUnauthorized, "unauthorized", 0), err, http.StatusUnauthorized, "AdminSearchWithFilters")
 		return
