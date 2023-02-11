@@ -179,7 +179,7 @@ func Init(DB *gorm.DB) {
 		teams.DeleteTeam(w, r, DB)
 	})
 
-	team.HandleFunc("/update/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/captain
+	team.HandleFunc("/update/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/captain/{id}
 		teams.UpdateCaptain(w, r, DB)
 	})
 
@@ -201,6 +201,14 @@ func Init(DB *gorm.DB) {
 
 	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/get/teams
 		admins.GetTeams(w, r, DB)
+	})
+
+	admin.HandleFunc("/resend/verification/elsys/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/elsys/{id}
+		admins.ResendVerificationElsys(w, r, DB)
+	})
+
+	admin.HandleFunc("/resend/verification/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/{id}
+		admins.ResendVerification(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{
