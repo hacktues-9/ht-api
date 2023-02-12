@@ -108,7 +108,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email, err := ValidateEmailToken(token)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ ValidateEmail ] validate: token: %s", err)
-		http.Redirect(w, r, os.Getenv("ROUTE_URL" + "/verify/notfound"), http.StatusSeeOther)
+		http.Redirect(w, r, os.Getenv("ROUTE_URL") + "/verify/notfound", http.StatusSeeOther)
 		return
 	}
 	security := models.Security{}
