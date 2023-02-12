@@ -749,7 +749,7 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get team from db
 	var team models.GetTeamView
 	db.Table("team").Select("team.name, team.description, team.logo").Where("team.id = ?\n", teamID).Scan(&team)
-	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS avatar, role.name AS role").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ?\n", teamID).Scan(&team.Members)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS avatar, role.name AS role").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ? AND users.deleted_at IS NULL", teamID).Order("role_id desc").Scan(&team.Members)
 
 	// get team technologies from db
 	var teamTechnologies []string
@@ -985,7 +985,7 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	//clear all users from team
-	err = db.Table("users").Where("team_id = ?", teamID).Update("team_id", nil).Error
+	err = db.Table("users").Where("team_id = ?", teamID).Updates(map[string]interface{}{"team_id": nil, "role_id": 1}).Error
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ DeleteTeam ] update: %v\n", err)
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "update: "+err.Error(), 0), err, http.StatusInternalServerError, "DeleteTeam")

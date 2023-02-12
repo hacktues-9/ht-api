@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/hacktues-9/API/cmd/admins"
 	"github.com/hacktues-9/API/pkg/models"
 	"net/http"
 
@@ -20,7 +21,7 @@ func Init(DB *gorm.DB) {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
 	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
-	//admin := r.PathPrefix("/admin").Subrouter()
+	admin := r.PathPrefix("/admin").Subrouter()
 	// mentor := r.PathPrefix("/mentor").Subrouter()
 	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
@@ -71,10 +72,9 @@ func Init(DB *gorm.DB) {
 		users.ResetPassword(w, r, DB)
 	})
 
-	//admin.HandleFunc("/search-user", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search-user
-	//	users.FetchUser(w, r, DB)
-	//})
-
+	admin.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) { // route - /api/admin/search
+		admins.SearchWithFilters(w, r, DB)
+	})
 	auth.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/login
 		users.Login(w, r, DB)
 	})
@@ -124,7 +124,7 @@ func Init(DB *gorm.DB) {
 	})
 
 	team.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/create
-		teams.CreateTeam(w, r, DB)
+		w.WriteHeader(http.StatusInternalServerError)
 	})
 
 	team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
@@ -179,7 +179,7 @@ func Init(DB *gorm.DB) {
 		teams.DeleteTeam(w, r, DB)
 	})
 
-	team.HandleFunc("/update/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/captain
+	team.HandleFunc("/update/captain/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/update/captain/{id}
 		teams.UpdateCaptain(w, r, DB)
 	})
 
@@ -197,6 +197,18 @@ func Init(DB *gorm.DB) {
 
 	r.HandleFunc("/image/{name}", func(w http.ResponseWriter, r *http.Request) { // route - /api/image/{name}
 		users.GenerateImage(w, r, DB)
+	})
+
+	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/get/teams
+		admins.GetTeams(w, r, DB)
+	})
+
+	admin.HandleFunc("/resend/verification/elsys/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/elsys/{id}
+		admins.ResendVerificationElsys(w, r, DB)
+	})
+
+	admin.HandleFunc("/resend/verification/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/{id}
+		admins.ResendVerification(w, r, DB)
 	})
 
 	c := cors.New(cors.Options{

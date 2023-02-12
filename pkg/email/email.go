@@ -108,7 +108,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	email, err := ValidateEmailToken(token)
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ ValidateEmail ] validate: token: %s", err)
-		http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusNotFound)
+		http.Redirect(w, r, os.Getenv("ROUTE_URL") + "/verify/" + err.Error(), http.StatusSeeOther)
 		return
 	}
 	security := models.Security{}
@@ -118,7 +118,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.ElsysEmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
-			http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusNotFound)
+			http.Redirect(w, r, os.Getenv("ROUTE_URL"),http.StatusSeeOther)
 			return
 		}
 		security.ElsysEmailVerified = true
@@ -128,7 +128,7 @@ func ValidateEmail(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		if security.EmailVerified {
 			w.WriteHeader(http.StatusBadRequest)
-			http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusNotFound)
+			http.Redirect(w, r, os.Getenv("ROUTE_URL"), http.StatusSeeOther)
 			return
 		}
 		security.EmailVerified = true
