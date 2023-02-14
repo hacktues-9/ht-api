@@ -22,7 +22,7 @@ func Init(DB *gorm.DB) {
 	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
 	admin := r.PathPrefix("/admin").Subrouter()
-	// mentor := r.PathPrefix("/mentor").Subrouter()
+	mentor := r.PathPrefix("/mentor").Subrouter()
 	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
 	database := r.PathPrefix("/db").Subrouter()
@@ -34,6 +34,10 @@ func Init(DB *gorm.DB) {
 
 	user.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/discord
 		oauth.GetDiscordInfo(w, r, DB)
+	})
+
+	mentor.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/discord
+		oauth.GetMentorDiscordInfo(w, r, DB)
 	})
 
 	user.HandleFunc("/github", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/github
