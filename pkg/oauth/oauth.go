@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hacktues-9/API/pkg/jwt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/hacktues-9/API/pkg/jwt"
 
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
@@ -254,7 +255,7 @@ func GetMentorDiscordInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	db.Create(&discord)
 
-	http.Redirect(w, r, "https://discord.com/channels/@me", http.StatusSeeOther)
+	http.Redirect(w, r, "https://discord.gg/UqFRDF6RcN", http.StatusSeeOther)
 }
 
 func GetGithubInfo(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
