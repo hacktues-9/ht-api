@@ -41,11 +41,11 @@ func Init(DB *gorm.DB) {
 		oauth.GetMentorDiscordInfo(w, r, DB)
 	})
 
-	mentor.HandleFunc("/save/{team_id}/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save
+	mentor.HandleFunc("/save/{team_id}/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save/{team_id}/{mentor_id}
 		mentors.SaveMentor(w, r, DB)
 	})
 
-	mentor.HandleFunc("/isAvailable/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/is_available
+	mentor.HandleFunc("/isAvailable/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/isAvailable/{mentor_id}
 		mentors.IsAvailable(w, r, DB)
 	})
 
@@ -172,7 +172,7 @@ func Init(DB *gorm.DB) {
 		teams.GetInvitees(w, r, DB)
 	})
 
-	team.HandleFunc("/get/mentor/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/mentor/{id}
+	team.HandleFunc("/get/mentor/{team_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/mentor/{team_id}
 		mentors.HasMentor(w, r, DB)
 	})
 
