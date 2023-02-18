@@ -128,7 +128,7 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	tech := query.Get("stech")
 	var parseMentors []models.Mentors
 	// get mentors name like
-	db.Where("name LIKE ?", "%"+name+"%").Find(&parseMentors)
+	db.Where("concat(firstName + \" \" + lastName) LIKE ?", "%"+name+"%").Find(&parseMentors)
 
 	var mentors []models.MentorView
 	for _, parseMentor := range parseMentors {
