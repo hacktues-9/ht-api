@@ -128,8 +128,11 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	tech := query.Get("stech")
 	var parseMentors []models.Mentors
 	// get mentors name like
-	db.Raw("SELECT * FROM mentors WHERE concat(first_name, ' ', last_name) LIKE '%?%'", name).Scan(&parseMentors)
-
+	if name != "" {
+		db.Raw("SELECT * FROM mentors WHERE concat(first_name, ' ', last_name) LIKE '%?%'", name).Scan(&parseMentors)
+	} else {
+		db.Raw("SELECT * FROM mentors").Scan(&parseMentors)
+	}
 	var mentors []models.MentorView
 	for _, parseMentor := range parseMentors {
 		mentor := models.MentorView{
