@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"github.com/hacktues-9/API/cmd/admins"
+	"github.com/hacktues-9/API/cmd/mentors"
 	"github.com/hacktues-9/API/pkg/models"
 	"net/http"
 
@@ -38,6 +39,14 @@ func Init(DB *gorm.DB) {
 
 	mentor.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/discord
 		oauth.GetMentorDiscordInfo(w, r, DB)
+	})
+
+	mentor.HandleFunc("/save/{team_id}/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save
+		mentors.SaveMentor(w, r, DB)
+	})
+
+	mentor.HandleFunc("/isAvailable/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/is_available
+		mentors.IsAvailable(w, r, DB)
 	})
 
 	user.HandleFunc("/github", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/github
@@ -161,6 +170,10 @@ func Init(DB *gorm.DB) {
 
 	team.HandleFunc("/get/invitees/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/invitees/{id}
 		teams.GetInvitees(w, r, DB)
+	})
+
+	team.HandleFunc("/get/mentor/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/mentor/{id}
+		mentors.HasMentor(w, r, DB)
 	})
 
 	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
