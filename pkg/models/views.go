@@ -113,3 +113,17 @@ type KurView struct {
 	Github             string `json:"github"`
 	Team               string `json:"team"`
 }
+
+type MentorView struct {
+	ID             uint     `json:"id"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	Technologies   []string `json:"technologies"`
+	Position       string   `json:"position"`
+	ProfilePicture string   `json:"profile_picture"`
+	Video          string   `json:"video"`
+	TeamID         uint     `json:"team_id"`
+	TimeFrames     []uint   `json:"time_frames"`
+	OnSite         bool     `json:"on_site"`
+	Online         bool     `json:"online"`
+}

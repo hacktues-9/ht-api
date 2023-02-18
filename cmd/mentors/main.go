@@ -121,3 +121,59 @@ func HasMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	models.RespHandler(w, r, models.DefaultPosResponse(mentor.ID), nil, http.StatusOK, "HasMentor")
 }
+
+func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	query := r.URL.Query()
+	name := query.Get("sname")
+	tech := query.Get("stech")
+	var parseMentors []models.Mentors
+	// get mentors name like
+	db.Where("name LIKE ?", "%"+name+"%").Find(&parseMentors)
+
+	var mentors []models.MentorView
+	for _, parseMentor := range parseMentors {
+		mentor := models.MentorView{
+			ID:             parseMentor.ID,
+			Name:           parseMentor.FirstName + " " + parseMentor.LastName,
+			Description:    parseMentor.Description,
+			Position:       parseMentor.Position,
+			Technologies:   []string{},
+			ProfilePicture: parseMentor.ProfilePicture,
+			Video:          parseMentor.Videos,
+			TeamID:         parseMentor.TeamID,
+			TimeFrames:     []uint{},
+			OnSite:         parseMentor.OnSite,
+			Online:         parseMentor.Online,
+		}
+
+		// get mentor technologies
+		var mentorTechs []models.Technologies
+		db.Joins("JOIN mentor_technologies ON mentor_technologies.technologies_id = technologies_id").Where("mentor_technologies.mentor_id = ?", parseMentor.ID).Find(&mentorTechs)
+		// check if tech is in mentor techs
+		for _, mentorTech := range mentorTechs {
+			mentor.Technologies = append(mentor.Technologies, mentorTech.Technology)
+		}
+		// check if tech is in mentor techs
+		if tech != "" {
+			var isTech bool
+			for _, mentorTech := range mentorTechs {
+				if mentorTech.Technology == tech {
+					isTech = true
+				}
+			}
+			if !isTech {
+				continue
+			}
+		}
+
+		// get mentor time frames
+		var mentorTimeFrames []models.TimeFrames
+		db.Joins("JOIN mentor_time_frames ON mentor_time_frames.time_frames_id = time_frames_id").Where("mentor_time_frames.mentor_id = ?", parseMentor.ID).Find(&mentorTimeFrames)
+		for _, mentorTimeFrame := range mentorTimeFrames {
+			mentor.TimeFrames = append(mentor.TimeFrames, mentorTimeFrame.ID)
+		}
+
+		mentors = append(mentors, mentor)
+	}
+	models.RespHandler(w, r, models.DefaultPosResponse(mentors), nil, http.StatusOK, "GetMentors")
+}

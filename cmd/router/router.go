@@ -220,6 +220,10 @@ func Init(DB *gorm.DB) {
 		admins.GetTeams(w, r, DB)
 	})
 
+	mentor.HandleFunc("/get/mentors", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentors/get/mentors
+		mentors.GetMentors(w, r, DB)
+	})
+
 	admin.HandleFunc("/resend/verification/elsys/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/elsys/{id}
 		admins.ResendVerificationElsys(w, r, DB)
 	})
