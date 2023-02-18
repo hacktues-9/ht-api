@@ -71,6 +71,12 @@ type MemberTeamView struct {
 	Role   string `json:"role"`
 }
 
+type MentorTeamView struct {
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
 type ProjectTeamView struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -87,6 +93,7 @@ type GetTeamView struct {
 	Logo         string           `json:"logo"`
 	Technologies []string         `json:"technologies"`
 	Members      []MemberTeamView `json:"members"`
+	Mentor       MentorTeamView   `json:"mentor"`
 	Project      ProjectTeamView  `json:"project"`
 }
 
