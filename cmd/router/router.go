@@ -140,21 +140,21 @@ func Init(DB *gorm.DB) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 
-	team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
-		teams.InviteUserToTeam(w, r, DB)
-	})
+	//team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
+	//	teams.InviteUserToTeam(w, r, DB)
+	//})
 
-	team.HandleFunc("/apply", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/apply
-		teams.ApplyToTeam(w, r, DB)
-	})
+	//team.HandleFunc("/apply", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/apply
+	//	teams.ApplyToTeam(w, r, DB)
+	//})
 
-	team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
-		teams.AcceptInvite(w, r, DB)
-	})
+	//team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
+	//	teams.AcceptInvite(w, r, DB)
+	//})
 
-	team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
-		teams.DeclineInvite(w, r, DB)
-	})
+	//team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
+	//	teams.DeclineInvite(w, r, DB)
+	//})
 
 	team.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get
 		teams.GetTeams(w, r, DB)
