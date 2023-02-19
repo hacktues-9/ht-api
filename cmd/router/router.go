@@ -41,7 +41,7 @@ func Init(DB *gorm.DB) {
 		oauth.GetMentorDiscordInfo(w, r, DB)
 	})
 
-	mentor.HandleFunc("/save/{team_id}/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save/{team_id}/{mentor_id}
+	mentor.HandleFunc("/save/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save/{team_id}/{mentor_id}
 		mentors.SaveMentor(w, r, DB)
 	})
 

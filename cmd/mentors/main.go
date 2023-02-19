@@ -12,13 +12,6 @@ import (
 
 func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	vars := mux.Vars(r)
-	teamID, err := strconv.Atoi(vars["team_id"])
-	if err != nil {
-		fmt.Printf("[ ERROR ] [ SaveMentor ] accept invite: parse teamID: %v\n", err)
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "accept invite: parse teamID: "+err.Error(), 0), err, http.StatusBadRequest, "SaveMentor")
-		return
-	}
-
 	mentorID, err := strconv.Atoi(vars["mentor_id"])
 	if err != nil {
 		fmt.Printf("[ ERROR ] [ SaveMentor ] accept invite: parse mentorID: %v\n", err)
@@ -53,9 +46,9 @@ func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var user models.Users
 	db.Where("id = ?", sub).First(&user)
 
-	if float64(user.TeamID) != float64(teamID) {
-		fmt.Printf("[ ERROR ] [ SaveMentor ] user is not team leader\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user is not team leader", 0), err, http.StatusBadRequest, "SaveMentor")
+	if user.TeamID == 0 {
+		fmt.Printf("[ ERROR ] [ SaveMentor ] user is not in team\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user is not in team", 0), err, http.StatusBadRequest, "SaveMentor")
 		return
 	}
 
@@ -66,7 +59,7 @@ func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	}
 
 	// set mentor team id
-	db.Model(&models.Mentors{}).Where("id = ?", mentor.ID).Update("team_id", teamID)
+	db.Model(&models.Mentors{}).Where("id = ?", mentor.ID).Update("team_id", user.TeamID)
 
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "SaveMentor")
 
