@@ -123,6 +123,7 @@ type MentorView struct {
 	ProfilePicture string   `json:"profile_picture"`
 	Video          string   `json:"video"`
 	TeamID         uint     `json:"team_id"`
+	TeamName       string   `json:"team_name"`
 	TimeFrames     []uint   `json:"time_frames"`
 	OnSite         bool     `json:"on_site"`
 	Online         bool     `json:"online"`
