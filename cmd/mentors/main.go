@@ -151,7 +151,7 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		// get mentor technologies
 		var mentorTechs []models.Technologies
-		db.Joins("JOIN mentor_technologies ON mentor_technologies.technologies_id = technologies_id").Where("mentor_technologies.mentor_id = ?", parseMentor.ID).Find(&mentorTechs)
+		db.Joins("JOIN mentor_technologies ON mentor_technologies.technologies_id = technologies.id").Where("mentor_technologies.mentor_id = ?", parseMentor.ID).Find(&mentorTechs)
 		// check if tech is in mentor techs
 		for _, mentorTech := range mentorTechs {
 			mentor.Technologies = append(mentor.Technologies, mentorTech.Technology)
@@ -171,7 +171,7 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		// get mentor time frames
 		var mentorTimeFrames []models.TimeFrames
-		db.Joins("JOIN mentors_time_frames ON mentors_time_frames.time_frames_id = time_frames_id").Where("mentors_time_frames.mentor_id = ?", parseMentor.ID).Find(&mentorTimeFrames)
+		db.Joins("JOIN mentors_time_frames ON mentors_time_frames.time_frame_id = time_frame.id").Where("mentors_time_frames.mentor_id = ?", parseMentor.ID).Find(&mentorTimeFrames)
 		for _, mentorTimeFrame := range mentorTimeFrames {
 			mentor.TimeFrames = append(mentor.TimeFrames, mentorTimeFrame.ID)
 		}
