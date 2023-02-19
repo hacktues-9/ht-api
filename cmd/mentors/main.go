@@ -42,6 +42,16 @@ func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
+	//check if team has mentor
+	var otherMentor models.Mentors
+	db.Where("team_id = ?", mentor.TeamID).First(&otherMentor)
+
+	if otherMentor.ID != 0 {
+		fmt.Printf("[ ERROR ] [ SaveMentor ] team has mentor\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "team has mentor", 0), err, http.StatusBadRequest, "SaveMentor")
+		return
+	}
+
 	//check if sub is team leader
 	var user models.Users
 	db.Where("id = ?", sub).First(&user)
