@@ -749,7 +749,7 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get team from db
 	var team models.GetTeamView
 	db.Table("team").Select("team.name, team.description, team.logo").Where("team.id = ?\n", teamID).Scan(&team)
-	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS avatar, role.name AS role").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ? AND users.deleted_at IS NULL", teamID).Order("role_id desc").Scan(&team.Members)
+	db.Table("users").Select("users.id, concat(users.first_name, ' ', users.last_name) AS name, socials.profile_picture AS avatar, role.name AS role, concat(class.name, ' ', grade) as class").Joins("JOIN info ON users.info_id = info.id").Joins("JOIN class ON info.class_id = class.id").Joins("JOIN socials ON info.socials_id = socials.id").Joins("JOIN role ON role.id = users.role_id").Where("users.team_id = ? AND users.deleted_at IS NULL", teamID).Order("role_id desc").Scan(&team.Members)
 	db.Table("mentors").Select("mentors.id, concat(mentors.first_name, ' ', mentors.last_name) AS name, mentors.profile_picture AS avatar").Joins("JOIN role ON role.id = mentors.role_id").Where("mentors.team_id = ? AND mentors.deleted_at IS NULL", teamID).Scan(&team.Mentor)
 
 	// get team technologies from db

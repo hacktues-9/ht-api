@@ -69,6 +69,7 @@ type MemberTeamView struct {
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
 	Role   string `json:"role"`
+	Class  string `json:"class"`
 }
 
 type MentorTeamView struct {
