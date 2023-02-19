@@ -42,16 +42,6 @@ func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		return
 	}
 
-	//check if team has mentor
-	var otherMentor models.Mentors
-	db.Where("team_id = ?", mentor.TeamID).First(&otherMentor)
-
-	if otherMentor.ID != 0 {
-		fmt.Printf("[ ERROR ] [ SaveMentor ] team has mentor\n")
-		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "team has mentor", 0), err, http.StatusBadRequest, "SaveMentor")
-		return
-	}
-
 	//check if sub is team leader
 	var user models.Users
 	db.Where("id = ?", sub).First(&user)
@@ -59,6 +49,16 @@ func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	if user.TeamID == 0 {
 		fmt.Printf("[ ERROR ] [ SaveMentor ] user is not in team\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "user is not in team", 0), err, http.StatusBadRequest, "SaveMentor")
+		return
+	}
+
+	//check if team has mentor
+	var otherMentor models.Mentors
+	//db.Where("team_id = ?", mentor.TeamID).First(&otherMentor)
+	db.Raw("SELECT * FROM mentors WHERE team_id = ?", user.TeamID).Scan(&otherMentor)
+	if otherMentor.ID != 0 {
+		fmt.Printf("[ ERROR ] [ SaveMentor ] team has mentor\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "team has mentor", 0), err, http.StatusBadRequest, "SaveMentor")
 		return
 	}
 
@@ -128,7 +128,6 @@ func HasMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	query := r.URL.Query()
 	name := query.Get("sname")
-	tech := query.Get("stech")
 	var parseMentors []models.Mentors
 	// get mentors name like
 	if name != "" {
@@ -159,18 +158,6 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		// check if tech is in mentor techs
 		for _, mentorTech := range mentorTechs {
 			mentor.Technologies = append(mentor.Technologies, mentorTech.Technology)
-		}
-		// check if tech is in mentor techs
-		if tech != "" {
-			var isTech bool
-			for _, mentorTech := range mentorTechs {
-				if mentorTech.Technology == tech {
-					isTech = true
-				}
-			}
-			if !isTech {
-				continue
-			}
 		}
 
 		// get mentor time frames
