@@ -148,7 +148,7 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get mentors name like
 	if name != "" {
 		query := "%" + name + "%"
-		db.Raw("SELECT * FROM mentors WHERE concat(first_name, ' ', last_name) LIKE ?", query).Scan(&parseMentors)
+		db.Raw("SELECT * FROM mentors WHERE lower(concat(first_name, ' ', last_name)) LIKE lower(?)", query).Scan(&parseMentors)
 	} else {
 		db.Raw("SELECT * FROM mentors").Scan(&parseMentors)
 	}
