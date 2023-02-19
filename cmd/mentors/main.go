@@ -1,6 +1,7 @@
 package mentors
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hacktues-9/API/cmd/users"
@@ -114,11 +115,26 @@ func HasMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	mentor := models.Mentors{}
 	// check if mentor is available
-	db.Where("team_id = ?", teamID).First(&mentor)
+	db.Raw("SELECT * FROM mentors WHERE team_id = ?", teamID).Scan(&mentor)
 
 	if mentor.ID == 0 {
 		fmt.Printf("[ ERROR ] [ HasMentor ] mentor not found\n")
 		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "mentor not found", 0), err, http.StatusBadRequest, "HasMentor")
+		return
+	}
+
+	models.RespHandler(w, r, models.DefaultPosResponse(mentor.ID), nil, http.StatusOK, "HasMentor")
+}
+
+func HasMentorUID(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	vars := mux.Vars(r)
+	uid := vars["user_id"]
+	mentor := models.Mentors{}
+
+	db.Raw("SELECT * FROM mentors WHERE team_id IN (SELECT team_id FROM users WHERE id = ?)", uid).Scan(&mentor)
+	if mentor.ID == 0 {
+		fmt.Printf("[ ERROR ] [ HasMentor ] mentor not found\n")
+		models.RespHandler(w, r, models.DefaultNegResponse(http.StatusBadRequest, "mentor not found", 0), errors.New("mentor not found"), http.StatusBadRequest, "HasMentor")
 		return
 	}
 

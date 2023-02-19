@@ -176,6 +176,10 @@ func Init(DB *gorm.DB) {
 		mentors.HasMentor(w, r, DB)
 	})
 
+	user.HandleFunc("/get/mentor/{user_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get/mentor/{user_id}
+		mentors.HasMentorUID(w, r, DB)
+	})
+
 	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
 		teams.GetTeam(w, r, DB)
 	})
