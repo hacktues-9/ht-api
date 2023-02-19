@@ -3,12 +3,13 @@ package mentors
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gorilla/mux"
 	"github.com/hacktues-9/API/cmd/users"
 	"github.com/hacktues-9/API/pkg/models"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 )
 
 func SaveMentor(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -183,6 +184,11 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		for _, mentorTimeFrame := range mentorTimeFrames {
 			mentor.TimeFrames = append(mentor.TimeFrames, mentorTimeFrame.ID)
 		}
+
+		//get team name
+		teamName := ""
+		db.Select("name").Table("teams").Where("id = ?", parseMentor.TeamID).Scan(&teamName)
+		mentor.TeamName = teamName
 
 		mentors = append(mentors, mentor)
 	}

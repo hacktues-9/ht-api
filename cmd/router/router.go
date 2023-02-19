@@ -104,9 +104,9 @@ func Init(DB *gorm.DB) {
 		users.ForgotPassword(w, r, DB)
 	})
 
-	auth.HandleFunc("/delete/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/delete/{token}
-		users.DeleteUser(w, r, DB)
-	})
+	//auth.HandleFunc("/delete/{token}", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/delete/{token}
+	//	users.DeleteUser(w, r, DB)
+	//})
 
 	auth.HandleFunc("/me", func(w http.ResponseWriter, r *http.Request) { // route - /api/auth/me
 		users.GetUserID(w, r, DB)
