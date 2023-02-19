@@ -171,7 +171,8 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		// get mentor time frames
 		var mentorTimeFrames []models.TimeFrames
-		db.Joins("JOIN mentors_time_frames ON mentors_time_frames.time_frame_id = time_frame.id").Where("mentors_time_frames.mentor_id = ?", parseMentor.ID).Find(&mentorTimeFrames)
+		//db.Table("").Joins("JOIN mentors_time_frames ON mentors_time_frames.time_frame_id = time_frame.id").Where("mentors_time_frames.mentor_id = ?", parseMentor.ID).Find(&mentorTimeFrames)
+		db.Raw("SELECT * FROM time_frames WHERE id IN (SELECT time_frame_id FROM mentors_time_frames WHERE mentor_id = ?)", parseMentor.ID).Scan(&mentorTimeFrames)
 		for _, mentorTimeFrame := range mentorTimeFrames {
 			mentor.TimeFrames = append(mentor.TimeFrames, mentorTimeFrame.ID)
 		}
