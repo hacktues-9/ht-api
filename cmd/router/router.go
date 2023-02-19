@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"github.com/hacktues-9/API/cmd/admins"
+	"github.com/hacktues-9/API/cmd/mentors"
 	"github.com/hacktues-9/API/pkg/models"
 	"net/http"
 
@@ -22,7 +23,7 @@ func Init(DB *gorm.DB) {
 	r.Use(mux.CORSMethodMiddleware(r))
 	auth := r.PathPrefix("/auth").Subrouter()
 	admin := r.PathPrefix("/admin").Subrouter()
-	// mentor := r.PathPrefix("/mentor").Subrouter()
+	mentor := r.PathPrefix("/mentor").Subrouter()
 	team := r.PathPrefix("/team").Subrouter()
 	user := r.PathPrefix("/user").Subrouter()
 	database := r.PathPrefix("/db").Subrouter()
@@ -34,6 +35,18 @@ func Init(DB *gorm.DB) {
 
 	user.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/discord
 		oauth.GetDiscordInfo(w, r, DB)
+	})
+
+	mentor.HandleFunc("/discord", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/discord
+		oauth.GetMentorDiscordInfo(w, r, DB)
+	})
+
+	mentor.HandleFunc("/save/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/save/{team_id}/{mentor_id}
+		mentors.SaveMentor(w, r, DB)
+	})
+
+	mentor.HandleFunc("/isAvailable/{mentor_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentor/isAvailable/{mentor_id}
+		mentors.IsAvailable(w, r, DB)
 	})
 
 	user.HandleFunc("/github", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/github
@@ -127,21 +140,21 @@ func Init(DB *gorm.DB) {
 		w.WriteHeader(http.StatusInternalServerError)
 	})
 
-	team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
-		teams.InviteUserToTeam(w, r, DB)
-	})
+	//team.HandleFunc("/invite", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/invite
+	//	teams.InviteUserToTeam(w, r, DB)
+	//})
 
-	team.HandleFunc("/apply", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/apply
-		teams.ApplyToTeam(w, r, DB)
-	})
+	//team.HandleFunc("/apply", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/apply
+	//	teams.ApplyToTeam(w, r, DB)
+	//})
 
-	team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
-		teams.AcceptInvite(w, r, DB)
-	})
+	//team.HandleFunc("/accept/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/accept/{teamId}/{userId}
+	//	teams.AcceptInvite(w, r, DB)
+	//})
 
-	team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
-		teams.DeclineInvite(w, r, DB)
-	})
+	//team.HandleFunc("/decline/{teamId}/{userId}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/decline/{teamId}/{userId}
+	//	teams.DeclineInvite(w, r, DB)
+	//})
 
 	team.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get
 		teams.GetTeams(w, r, DB)
@@ -157,6 +170,14 @@ func Init(DB *gorm.DB) {
 
 	team.HandleFunc("/get/invitees/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/invitees/{id}
 		teams.GetInvitees(w, r, DB)
+	})
+
+	team.HandleFunc("/get/mentor/{team_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/mentor/{team_id}
+		mentors.HasMentor(w, r, DB)
+	})
+
+	user.HandleFunc("/get/mentor/{user_id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/user/get/mentor/{user_id}
+		mentors.HasMentorUID(w, r, DB)
 	})
 
 	team.HandleFunc("/get/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/team/get/{id}
@@ -201,6 +222,10 @@ func Init(DB *gorm.DB) {
 
 	admin.HandleFunc("/get/teams", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/get/teams
 		admins.GetTeams(w, r, DB)
+	})
+
+	mentor.HandleFunc("/get/mentors", func(w http.ResponseWriter, r *http.Request) { // route - /api/mentors/get/mentors
+		mentors.GetMentors(w, r, DB)
 	})
 
 	admin.HandleFunc("/resend/verification/elsys/{id}", func(w http.ResponseWriter, r *http.Request) { // route - /api/admins/resend/verification/elsys/{id}

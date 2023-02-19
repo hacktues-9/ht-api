@@ -62,8 +62,11 @@ func PopulateDefault(db *gorm.DB) {
 	var eatingPreferenceValues = []string{"VEGETARIAN", "VEGAN", "NONE"}
 	var allergiesValues = []string{"EGGS", "NUTS", "MILK", "GLUTEN"}
 	var shirtSizeValues = []string{"S", "M", "L", "XL", "XXL"}
-	var technologiesValues = []string{"2D Art",
+	var technologiesValues = []string{
+		".NET",
+		"2D Art",
 		"3D Art",
+		"Angular",
 		"AngularJS",
 		"Apache",
 		"Arduino",
@@ -81,12 +84,15 @@ func PopulateDefault(db *gorm.DB) {
 		"Cloud computing",
 		"CSS",
 		"Dart",
+		"DevOps",
 		"Django",
 		"Docker",
+		"ElasticSearch",
 		"Elexir",
 		"Emacs",
 		"Embedded",
 		"ESP32 / ESP8266",
+		"ElasticSearch",
 		"ExpressJS",
 		"Firebase",
 		"Flutter",
@@ -114,7 +120,6 @@ func PopulateDefault(db *gorm.DB) {
 		"MySQL",
 		"NextJS",
 		"Nginx",
-		"Node-RED",
 		"NodeJS",
 		"NoSQL",
 		"OOPs",
