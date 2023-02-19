@@ -187,10 +187,7 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 		//get team name
 		teamName := ""
-		if parseMentor.TeamID != 0 {
-			db.Select("name").Where("id = ?", parseMentor.TeamID).Find(&teamName)
-		}
-
+		db.Select("name").Table("teams").Where("id = ?", parseMentor.TeamID).Scan(&teamName)
 		mentor.TeamName = teamName
 
 		mentors = append(mentors, mentor)
