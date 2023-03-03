@@ -149,9 +149,9 @@ func GetMentors(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	// get mentors name like
 	if name != "" {
 		query := "%" + name + "%"
-		db.Raw("SELECT * FROM mentors WHERE lower(concat(first_name, ' ', last_name)) LIKE lower(?)", query).Scan(&parseMentors)
+		db.Raw("SELECT * FROM mentors WHERE lower(concat(first_name, ' ', last_name)) LIKE lower(?) AND deleted_at IS NULL", query).Scan(&parseMentors)
 	} else {
-		db.Raw("SELECT * FROM mentors").Scan(&parseMentors)
+		db.Raw("SELECT * FROM mentors WHERE deleted_at IS NULL").Scan(&parseMentors)
 	}
 	var mentors []models.MentorView
 	for _, parseMentor := range parseMentors {
