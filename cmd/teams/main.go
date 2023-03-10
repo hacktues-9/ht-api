@@ -915,7 +915,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	db.Table("project").Select("project.id").Joins("JOIN team ON team.project_id = project.id").Where("team.id = ?", teamID).Row().Scan(&projectID)
 
 	if projectID != 0 {
-		db.Table("project").Where("id = ?", projectID).Updates(map[string]interface{}{"name": team.Project.Name, "description": team.Project.Description, "github": team.Project.Links.Github, "website": team.Project.Links.Website})
+		db.Table("project").Where("id = ?", projectID).Updates(map[string]interface{}{"name": team.Project.Name, "description": team.Project.Description, "github_link": team.Project.Links.Github, "website": team.Project.Links.Website})
 
 	} else {
 		project := models.Project{
