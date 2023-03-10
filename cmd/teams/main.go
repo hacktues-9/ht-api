@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/hacktues-9/API/pkg/models"
@@ -897,6 +898,16 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 			TechnologiesID: uint(techID),
 		}
 		db.Table("team_technologies").Create(&teamTech)
+	}
+
+	// regex team.Project.Links.Github https://github.com/<user>/<repo>
+	// make a get request to https://api.github.com/repos/<user>/<repo> if response has id it is correct
+	if team.Project.Links.Github != "" {
+		if match, _ := regexp.MatchString(`^https:\/\/github\.com\/[^\/]+\/[^\/]+`, team.Project.Links.Github); !match {
+			fmt.Printf("[ ERROR ] [ UpdateTeam ] github link is not valid: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "github link is not valid: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+			return
+		}
 	}
 
 	// update project - check if project exists
