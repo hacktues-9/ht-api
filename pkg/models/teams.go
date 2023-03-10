@@ -10,10 +10,9 @@ type Project struct {
 	Description string
 
 	GithubLink string `gorm:"unique"`
-	Votes      int    `gorm:"default:0"`
+	Website    string `gorm:"unique"`
 
-	Logo  string
-	Color string
+	Logo string
 }
 
 type Pictures struct {

@@ -630,7 +630,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//get team project
 		if parseTeam.ProjectID != 0 {
 			var teamProject models.Project
-			db.Table("projects").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
+			db.Table("project").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
 
 			//get team project technologies
 			var teamProjectTechnologies []models.Technologies
@@ -887,6 +887,27 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 		db.Table("team_technologies").Create(&teamTech)
 	}
+
+	// update project - check if project exists
+	var projectID int
+	db.Table("project").Select("id").Joins("JOIN team ON team.project_id = projects.id").Where("team.id = ?", teamID).Row().Scan(&projectID)
+
+	if projectID != 0 {
+		db.Table("project").Where("id = ?", projectID).Updates(map[string]interface{}{"name": team.Project.Name, "description": team.Project.Description, "github": team.Project.Links.Github, "website": team.Project.Links.Website})
+
+	} else {
+		project := models.Project{
+			Name:        team.Project.Name,
+			Description: team.Project.Description,
+			GithubLink:  team.Project.Links.Github,
+			Website:     team.Project.Links.Website,
+		}
+		db.Table("project").Create(&project)
+
+		// update team project id
+		db.Table("team").Where("id = ?", teamID).Update("project_id", project.ID)
+	}
+
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
 }
