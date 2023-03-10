@@ -78,14 +78,16 @@ type MentorTeamView struct {
 	Avatar string `json:"avatar"`
 }
 
+type ProjectLinks struct {
+	Github  string `json:"github"`
+	Website string `json:"website"`
+}
+
 type ProjectTeamView struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Logo        string `json:"logo"`
-	Links       struct {
-		Github  string `json:"github"`
-		Website string `json:"website"`
-	} `json:"links"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Logo        string       `json:"logo"`
+	Links       ProjectLinks `json:"links"`
 }
 
 type GetTeamView struct {

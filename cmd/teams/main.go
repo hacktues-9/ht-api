@@ -759,8 +759,19 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	team.Technologies = teamTechnologies
 
 	// get team projects from db
-	var teamProject models.ProjectTeamView
-	team.Project = teamProject
+	var teamProject models.Project
+	var projectID int
+	db.Table("team").Select("project_id").Where("id = ?", teamID).Row().Scan(&projectID)
+	db.Table("project").Where("id = ? AND deleted_at IS NULL", projectID).Scan(&teamProject)
+	team.Project = models.ProjectTeamView{
+		Name:        teamProject.Name,
+		Description: teamProject.Description,
+		Logo:        teamProject.Logo,
+		Links: models.ProjectLinks{
+			Github:  teamProject.GithubLink,
+			Website: teamProject.Website,
+		},
+	}
 
 	// return team
 	models.RespHandler(w, r, models.DefaultPosResponse(team), nil, http.StatusOK, "GetTeam")
