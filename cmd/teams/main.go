@@ -912,7 +912,7 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	// update project - check if project exists
 	var projectID int
-	db.Table("project").Select("id").Joins("JOIN team ON team.project_id = project.id").Where("team.id = ?", teamID).Row().Scan(&projectID)
+	db.Table("project").Select("project.id").Joins("JOIN team ON team.project_id = project.id").Where("team.id = ?", teamID).Row().Scan(&projectID)
 
 	if projectID != 0 {
 		db.Table("project").Where("id = ?", projectID).Updates(map[string]interface{}{"name": team.Project.Name, "description": team.Project.Description, "github": team.Project.Links.Github, "website": team.Project.Links.Website})
