@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/hacktues-9/API/pkg/models"
@@ -630,7 +631,7 @@ func GetTeams(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		//get team project
 		if parseTeam.ProjectID != 0 {
 			var teamProject models.Project
-			db.Table("projects").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
+			db.Table("project").Where("id = ?\n", parseTeam.ProjectID).First(&teamProject)
 
 			//get team project technologies
 			var teamProjectTechnologies []models.Technologies
@@ -759,8 +760,19 @@ func GetTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	team.Technologies = teamTechnologies
 
 	// get team projects from db
-	var teamProject models.ProjectTeamView
-	team.Project = teamProject
+	var teamProject models.Project
+	var projectID int
+	db.Table("team").Select("project_id").Where("id = ?", teamID).Row().Scan(&projectID)
+	db.Table("project").Where("id = ? AND deleted_at IS NULL", projectID).Scan(&teamProject)
+	team.Project = models.ProjectTeamView{
+		Name:        teamProject.Name,
+		Description: teamProject.Description,
+		Logo:        teamProject.Logo,
+		Links: models.ProjectLinks{
+			Github:  teamProject.GithubLink,
+			Website: teamProject.Website,
+		},
+	}
 
 	// return team
 	models.RespHandler(w, r, models.DefaultPosResponse(team), nil, http.StatusOK, "GetTeam")
@@ -887,6 +899,37 @@ func UpdateTeam(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		}
 		db.Table("team_technologies").Create(&teamTech)
 	}
+
+	// regex team.Project.Links.Github https://github.com/<user>/<repo>
+	// make a get request to https://api.github.com/repos/<user>/<repo> if response has id it is correct
+	if team.Project.Links.Github != "" {
+		if match, _ := regexp.MatchString(`^https:\/\/github\.com\/[^\/]+\/[^\/]+`, team.Project.Links.Github); !match {
+			fmt.Printf("[ ERROR ] [ UpdateTeam ] github link is not valid: %v\n", err)
+			models.RespHandler(w, r, models.DefaultNegResponse(http.StatusInternalServerError, "github link is not valid: "+err.Error(), 0), err, http.StatusInternalServerError, "UpdateTeam")
+			return
+		}
+	}
+
+	// update project - check if project exists
+	var projectID int
+	db.Table("project").Select("project.id").Joins("JOIN team ON team.project_id = project.id").Where("team.id = ?", teamID).Row().Scan(&projectID)
+
+	if projectID != 0 {
+		db.Table("project").Where("id = ?", projectID).Updates(map[string]interface{}{"name": team.Project.Name, "description": team.Project.Description, "github_link": team.Project.Links.Github, "website": team.Project.Links.Website})
+
+	} else {
+		project := models.Project{
+			Name:        team.Project.Name,
+			Description: team.Project.Description,
+			GithubLink:  team.Project.Links.Github,
+			Website:     team.Project.Links.Website,
+		}
+		db.Table("project").Create(&project)
+
+		// update team project id
+		db.Table("team").Where("id = ?", teamID).Update("project_id", project.ID)
+	}
+
 	// return success
 	models.RespHandler(w, r, models.DefaultPosResponse("success"), nil, http.StatusOK, "UpdateTeam")
 }
