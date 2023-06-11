@@ -3,16 +3,17 @@ module github.com/hacktues-9/API
 go 1.18
 
 require (
+	github.com/disintegration/letteravatar v0.0.0-20160912210445-1a457b860450
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
+	github.com/rs/cors v1.8.2
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gorm v1.23.9
 )
 
 require (
-	github.com/disintegration/letteravatar v0.0.0-20160912210445-1a457b860450 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
@@ -24,9 +25,6 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/rs/cors v1.8.2 // indirect
-	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	github.com/sendgrid/sendgrid-go v3.12.0+incompatible // indirect
-	golang.org/x/image v0.3.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/image v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 )
